@@ -1,4 +1,4 @@
 bin/
-walletd.yml
+vaultd.yml
 .DS_Store
 .vscode/
