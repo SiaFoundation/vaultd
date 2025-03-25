@@ -9,14 +9,12 @@ import (
 	"path/filepath"
 	"runtime"
 	"syscall"
-	"time"
 
 	"go.sia.tech/vaultd/config"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"lukechampine.com/flagg"
-	"lukechampine.com/upnp"
 )
 
 const (
@@ -74,22 +72,6 @@ func defaultDataDirectory(fp string) string {
 	default:
 		return "."
 	}
-}
-
-func setupUPNP(ctx context.Context, port uint16, log *zap.Logger) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	d, err := upnp.Discover(ctx)
-	if err != nil {
-		return "", fmt.Errorf("couldn't discover UPnP router: %w", err)
-	} else if !d.IsForwarded(port, "TCP") {
-		if err := d.Forward(uint16(port), "TCP", "vaultd"); err != nil {
-			log.Debug("couldn't forward port", zap.Error(err))
-		} else {
-			log.Debug("upnp: forwarded p2p port", zap.Uint16("port", port))
-		}
-	}
-	return d.ExternalIP()
 }
 
 // checkFatalError prints an error message to stderr and exits with a 1 exit code. If err is nil, this is a no-op.
@@ -151,13 +133,6 @@ var cfg = config.Config{
 		Address:  "localhost:9980",
 		Password: os.Getenv(apiPasswordEnvVar),
 	},
-	Syncer: config.Syncer{
-		Address:   ":9981",
-		Bootstrap: true,
-	},
-	Consensus: config.Consensus{
-		Network: "mainnet",
-	},
 	Log: config.Log{
 		File: config.LogFile{
 			Enabled: true,
@@ -181,7 +156,6 @@ func main() {
 	cfg.Directory = defaultDataDirectory(cfg.Directory)
 
 	rootCmd := flagg.Root
-	rootCmd.StringVar(&cfg.Consensus.Network, "network", cfg.Consensus.Network, "the network to connect to")
 	rootCmd.TextVar(&cfg.Log.StdOut.Level, "log.level", cfg.Log.StdOut.Level, "the log level for stdout")
 	rootCmd.StringVar(&cfg.HTTP.Address, "http.addr", cfg.HTTP.Address, "the address to listen on for the HTTP API")
 	rootCmd.Usage = flagg.SimpleUsage(rootCmd, ``)

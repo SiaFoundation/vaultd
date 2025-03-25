@@ -158,6 +158,7 @@ func (v *Vault) AddSeed(seed *[32]byte) (SeedMeta, error) {
 	frand.Read(buf[:n])
 	encrypted := v.aead.Seal(buf, buf, seed[:], nil)
 	defer clear(encrypted)
+	fmt.Println(len(encrypted))
 	return v.store.AddSeed(mac, encrypted)
 }
 

@@ -16,19 +16,6 @@ type (
 		Password string `yaml:"password,omitempty"`
 	}
 
-	// Syncer contains the configuration for the consensus set syncer.
-	Syncer struct {
-		Address    string   `yaml:"address,omitempty"`
-		Bootstrap  bool     `yaml:"bootstrap,omitempty"`
-		EnableUPnP bool     `yaml:"enableUPnP,omitempty"`
-		Peers      []string `yaml:"peers,omitempty"`
-	}
-
-	// Consensus contains the configuration for the consensus set.
-	Consensus struct {
-		Network string `yaml:"network,omitempty"`
-	}
-
 	// LogFile configures the file output of the logger.
 	LogFile struct {
 		Enabled bool            `yaml:"enabled,omitempty"`
@@ -58,10 +45,8 @@ type (
 		Directory     string `yaml:"directory,omitempty"`
 		AutoOpenWebUI bool   `yaml:"autoOpenWebUI,omitempty"`
 
-		HTTP      HTTP      `yaml:"http,omitempty"`
-		Consensus Consensus `yaml:"consensus,omitempty"`
-		Syncer    Syncer    `yaml:"syncer,omitempty"`
-		Log       Log       `yaml:"log,omitempty"`
+		HTTP HTTP `yaml:"http,omitempty"`
+		Log  Log  `yaml:"log,omitempty"`
 	}
 )
 

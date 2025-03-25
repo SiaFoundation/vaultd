@@ -62,5 +62,3 @@ lukechampine.com/flagg v1.1.1 h1:jB5oL4D5zSUrzm5og6dDEi5pnrTF1poKfC7KE1lLsqc=
 lukechampine.com/flagg v1.1.1/go.mod h1:a9ZuZu5LSPXELWSJrabRD00ort+lDXSOQu34xWgEoDI=
 lukechampine.com/frand v1.5.1 h1:fg0eRtdmGFIxhP5zQJzM1lFDbD6CUfu/f+7WgAZd5/w=
 lukechampine.com/frand v1.5.1/go.mod h1:4VstaWc2plN4Mjr10chUD46RAVGWhpkZ5Nja8+Azp0Q=
-lukechampine.com/upnp v0.3.0 h1:UVCD6eD6fmJmwak6DVE3vGN+L46Fk8edTcC6XYCb6C4=
-lukechampine.com/upnp v0.3.0/go.mod h1:sOuF+fGSDKjpUm6QI0mfb82ScRrhj8bsqsD78O5nK1k=

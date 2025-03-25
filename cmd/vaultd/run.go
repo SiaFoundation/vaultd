@@ -51,7 +51,7 @@ func run(ctx context.Context, log *zap.Logger) error {
 		}
 	}()
 
-	log.Info("vaultd started", zap.String("network", cfg.Consensus.Network), zap.String("http", cfg.HTTP.Address))
+	log.Info("vaultd started", zap.String("http", cfg.HTTP.Address))
 	<-ctx.Done()
 	log.Debug("shutting down")
 	time.AfterFunc(10*time.Second, func() {
