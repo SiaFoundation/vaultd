@@ -14,13 +14,13 @@ import (
 const initialSchema = `
 CREATE TABLE seeds (
 	id INTEGER PRIMARY KEY,
-	seed_mac BLOB UNIQUE NOT NULL,
-	encrypted_seed BLOB UNIQUE NOT NULL,
+	seed_mac BLOB UNIQUE NOT NULL CHECK(length(seed_mac) = 32),
+	encrypted_seed BLOB UNIQUE NOT NULL CHECK(length(encrypted_seed) = 72),
 	date_created INTEGER NOT NULL
 );
 
 CREATE TABLE signing_keys (
-	public_key BLOB PRIMARY KEY,
+	public_key BLOB PRIMARY KEY CHECK(length(public_key) = 32),
 	seed_id INTEGER NOT NULL REFERENCES seeds (id),
 	seed_index INTEGER NOT NULL
 );
