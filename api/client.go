@@ -18,7 +18,7 @@ type Client struct {
 // AddSeed adds a new seed to the vault.
 func (c *Client) AddSeed(ctx context.Context, recoveryPhrase string) (resp SeedResponse, err error) {
 	req := AddSeedRequest{
-		RecoveryPhrase: recoveryPhrase,
+		Phrase: recoveryPhrase,
 	}
 	err = c.c.POST(ctx, "/seeds", req, &resp)
 	return

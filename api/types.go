@@ -1,6 +1,8 @@
 package api
 
 import (
+	"time"
+
 	"go.sia.tech/core/consensus"
 	"go.sia.tech/core/types"
 	"go.sia.tech/seedvault/vault"
@@ -9,11 +11,15 @@ import (
 type (
 	// An AddSeedRequest is a request to add a seed to the vault.
 	AddSeedRequest struct {
-		RecoveryPhrase string `json:"recoveryPhrase"`
+		Phrase string `json:"phrase"`
 	}
 
 	// SeedResponse is a response to a seed request.
-	SeedResponse vault.SeedMeta
+	SeedResponse struct {
+		ID        vault.SeedID `json:"id"`
+		LastIndex uint64       `json:"lastIndex"`
+		CreatedAt time.Time    `json:"createdAt"`
+	}
 
 	// SeedKey is a public key and its associated standard address.
 	SeedKey struct {

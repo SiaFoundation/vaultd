@@ -34,13 +34,13 @@ func (a *api) handlePOSTSeeds(jc jape.Context) {
 
 	var seed [32]byte
 	defer clear(seed[:])
-	if len(strings.Fields(req.RecoveryPhrase)) != 12 {
-		if err := siad.SeedFromPhrase(&seed, req.RecoveryPhrase); err != nil {
+	if len(strings.Fields(req.Phrase)) != 12 {
+		if err := siad.SeedFromPhrase(&seed, req.Phrase); err != nil {
 			jc.Error(err, http.StatusBadRequest)
 			return
 		}
 	} else {
-		if err := wallet.SeedFromPhrase(&seed, req.RecoveryPhrase); err != nil {
+		if err := wallet.SeedFromPhrase(&seed, req.Phrase); err != nil {
 			jc.Error(err, http.StatusBadRequest)
 			return
 		}
@@ -61,21 +61,28 @@ func (a *api) handleGETSeedsID(jc jape.Context) {
 	}
 
 	meta, err := a.vault.SeedMeta(id)
-	if err != nil {
+	if errors.Is(err, vault.ErrNotFound) {
+		jc.Error(err, http.StatusNotFound)
+	} else if err != nil {
 		jc.Error(err, http.StatusInternalServerError)
 		return
 	}
-	jc.Encode(meta)
+	jc.Encode(SeedResponse{
+		ID:        meta.ID,
+		LastIndex: meta.LastIndex,
+		CreatedAt: meta.CreatedAt,
+	})
 }
 
 func (a *api) handleGETSeedsKeys(jc jape.Context) {
-	var limit, offset int
+	limit := 100
+	offset := 0
 	if err := jc.DecodeForm("limit", &limit); err != nil {
 		return
 	} else if err := jc.DecodeForm("offset", &offset); err != nil {
 		return
-	} else if limit < 1 || limit > 1000 {
-		jc.Error(errors.New("limit must be between 1 and 1000"), http.StatusBadRequest)
+	} else if limit < 1 || limit > 500 {
+		jc.Error(errors.New("limit must be between 1 and 500"), http.StatusBadRequest)
 		return
 	} else if offset < 0 {
 		jc.Error(errors.New("offset must be non-negative"), http.StatusBadRequest)
@@ -88,7 +95,9 @@ func (a *api) handleGETSeedsKeys(jc jape.Context) {
 	}
 
 	keys, err := a.vault.SeedKeys(id, offset, limit)
-	if err != nil {
+	if errors.Is(err, vault.ErrNotFound) {
+		jc.Error(err, http.StatusNotFound)
+	} else if err != nil {
 		jc.Error(err, http.StatusInternalServerError)
 		return
 	}

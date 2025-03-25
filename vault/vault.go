@@ -2,11 +2,9 @@ package vault
 
 import (
 	"crypto/cipher"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
-	"log"
 	"strings"
 	"sync"
 	"time"
@@ -112,7 +110,6 @@ func (v *Vault) derivePrivateKey(id SeedID, index uint64) (types.PrivateKey, err
 	} else if len(buf) != 32 {
 		panic(fmt.Errorf("unexpected seed size %d: %w", len(buf), ErrInvalidSize)) // developer error
 	}
-	log.Println(hex.EncodeToString(seed[:]))
 	return wallet.KeyFromSeed(&seed, index), nil
 }
 
@@ -158,12 +155,9 @@ func (v *Vault) AddSeed(seed *[32]byte) (SeedMeta, error) {
 
 	n := v.aead.NonceSize()
 	buf := make([]byte, n, n+len(seed)+v.aead.Overhead())
-	defer clear(buf)
 	frand.Read(buf[:n])
 	encrypted := v.aead.Seal(buf, buf, seed[:], nil)
-	if _, err := v.aead.Open(nil, encrypted[:n], encrypted[n:], nil); err != nil {
-		return SeedMeta{}, fmt.Errorf("failed to validate seed: %w", err)
-	}
+	defer clear(encrypted)
 	return v.store.AddSeed(mac, encrypted)
 }
 
@@ -207,7 +201,7 @@ func (v *Vault) NextKey(id SeedID) (types.PublicKey, error) {
 
 	index, err := v.store.NextIndex(id)
 	if err != nil {
-		return types.PublicKey{}, fmt.Errorf("failed to get last index: %w", err)
+		return types.PublicKey{}, fmt.Errorf("failed to get next index: %w", err)
 	}
 
 	sk, err := v.derivePrivateKey(id, index)

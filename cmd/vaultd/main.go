@@ -182,6 +182,8 @@ func main() {
 
 	rootCmd := flagg.Root
 	rootCmd.StringVar(&cfg.Consensus.Network, "network", cfg.Consensus.Network, "the network to connect to")
+	rootCmd.TextVar(&cfg.Log.StdOut.Level, "log.level", cfg.Log.StdOut.Level, "the log level for stdout")
+	rootCmd.StringVar(&cfg.HTTP.Address, "http.addr", cfg.HTTP.Address, "the address to listen on for the HTTP API")
 	rootCmd.Usage = flagg.SimpleUsage(rootCmd, ``)
 
 	cmd := flagg.Parse(flagg.Tree{
