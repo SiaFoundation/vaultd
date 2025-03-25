@@ -24,9 +24,8 @@ CREATE TABLE signing_keys (
 	seed_id INTEGER NOT NULL REFERENCES seeds (id),
 	seed_index INTEGER NOT NULL
 );
-CREATE INDEX signing_keys_seed_index ON signing_keys (seed_id, seed_index);
-CREATE INDEX signing_keys_seed_id ON signing_keys (seed_id);
-CREATE INDEX signing_keys_seed_id_seed_index ON signing_keys (seed_id, seed_index ASC);
+CREATE INDEX signing_keys_seed_id_idx ON signing_keys (seed_id);
+CREATE INDEX signing_keys_seed_id_seed_index_idx ON signing_keys (seed_id, seed_index ASC);
 
 CREATE TABLE syncer_peers (
 	peer_address TEXT PRIMARY KEY NOT NULL,
@@ -38,7 +37,7 @@ CREATE TABLE syncer_bans (
 	expiration INTEGER NOT NULL,
 	reason TEXT NOT NULL
 );
-CREATE INDEX syncer_bans_expiration_index_idx ON syncer_bans (expiration);
+CREATE INDEX syncer_bans_expiration_idx ON syncer_bans (expiration);
 
 CREATE TABLE global_settings (
 	id INTEGER PRIMARY KEY NOT NULL DEFAULT 0 CHECK (id = 0), -- enforce a single row
