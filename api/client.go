@@ -7,10 +7,10 @@ import (
 	"go.sia.tech/core/consensus"
 	"go.sia.tech/core/types"
 	"go.sia.tech/jape"
-	"go.sia.tech/seedvault/vault"
+	"go.sia.tech/vaultd/vault"
 )
 
-// A Client is an API client for the seedvault API.
+// A Client is an API client for the vaultd API.
 type Client struct {
 	c jape.Client
 }
@@ -41,7 +41,7 @@ func (c *Client) GenerateKeys(ctx context.Context, id vault.SeedID, count uint64
 	return resp.Keys, err
 }
 
-// Sign signs a transaction using the seedvault.
+// Sign signs a transaction using the vaultd.
 func (c *Client) Sign(ctx context.Context, cs consensus.State, txn types.Transaction) (types.Transaction, bool, error) {
 	req := SignRequest{
 		State:       cs,
@@ -53,7 +53,7 @@ func (c *Client) Sign(ctx context.Context, cs consensus.State, txn types.Transac
 	return resp.Transaction, resp.FullySigned, err
 }
 
-// SignV2 signs a v2 transaction using the seedvault.
+// SignV2 signs a v2 transaction using the vaultd.
 func (c *Client) SignV2(ctx context.Context, cs consensus.State, txn types.V2Transaction) (types.V2Transaction, bool, error) {
 	req := SignV2Request{
 		State:       cs,

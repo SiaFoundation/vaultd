@@ -1,4 +1,4 @@
-module go.sia.tech/seedvault
+module go.sia.tech/vaultd
 
 go 1.24.1
 

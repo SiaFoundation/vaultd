@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"go.sia.tech/core/types"
-	"go.sia.tech/seedvault/vault"
+	"go.sia.tech/vaultd/vault"
 )
 
 // KeySalt returns the salt used to derive the key encryption

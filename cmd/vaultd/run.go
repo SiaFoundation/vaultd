@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"go.sia.tech/jape"
-	"go.sia.tech/seedvault/api"
-	"go.sia.tech/seedvault/persist/sqlite"
-	"go.sia.tech/seedvault/vault"
+	"go.sia.tech/vaultd/api"
+	"go.sia.tech/vaultd/persist/sqlite"
+	"go.sia.tech/vaultd/vault"
 	"go.uber.org/zap"
 )
 

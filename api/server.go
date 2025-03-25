@@ -5,15 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"runtime"
 	"strings"
+	"time"
 
 	"go.sia.tech/core/types"
 	"go.sia.tech/coreutils/wallet"
 	"go.sia.tech/jape"
-	"go.sia.tech/seedvault/internal/siad"
-	"go.sia.tech/seedvault/vault"
+	"go.sia.tech/vaultd/build"
+	"go.sia.tech/vaultd/internal/siad"
+	"go.sia.tech/vaultd/vault"
 	"go.uber.org/zap"
 )
+
+var startTime = time.Now()
 
 type (
 	api struct {
@@ -23,7 +28,13 @@ type (
 )
 
 func (a *api) handleGETState(jc jape.Context) {
-
+	jc.Encode(StateResponse{
+		Version:   build.Version(),
+		Commit:    build.Commit(),
+		OS:        runtime.GOOS,
+		BuildTime: build.Time(),
+		StartTime: startTime,
+	})
 }
 
 func (a *api) handlePOSTSeeds(jc jape.Context) {
@@ -310,7 +321,7 @@ func (a *api) handlePUTSignV2(jc jape.Context) {
 	})
 }
 
-// Handler returns an HTTP handler for the SeedVault API.
+// Handler returns an HTTP handler for the vaultd API.
 func Handler(v *vault.Vault, log *zap.Logger) http.Handler {
 	a := &api{
 		vault: v,

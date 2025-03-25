@@ -10,9 +10,9 @@ import (
 	"go.sia.tech/core/consensus"
 	"go.sia.tech/core/types"
 	"go.sia.tech/coreutils/wallet"
-	"go.sia.tech/seedvault/internal/siad"
-	"go.sia.tech/seedvault/persist/sqlite"
-	"go.sia.tech/seedvault/vault"
+	"go.sia.tech/vaultd/internal/siad"
+	"go.sia.tech/vaultd/persist/sqlite"
+	"go.sia.tech/vaultd/vault"
 	"go.uber.org/zap"
 	"lukechampine.com/frand"
 )

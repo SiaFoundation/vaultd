@@ -5,10 +5,20 @@ import (
 
 	"go.sia.tech/core/consensus"
 	"go.sia.tech/core/types"
-	"go.sia.tech/seedvault/vault"
+	"go.sia.tech/vaultd/vault"
 )
 
 type (
+	// A StateResponse returns information about the current state of the walletd
+	// daemon.
+	StateResponse struct {
+		Version   string    `json:"version"`
+		Commit    string    `json:"commit"`
+		OS        string    `json:"os"`
+		BuildTime time.Time `json:"buildTime"`
+		StartTime time.Time `json:"startTime"`
+	}
+
 	// An AddSeedRequest is a request to add a seed to the vault.
 	AddSeedRequest struct {
 		Phrase string `json:"phrase"`

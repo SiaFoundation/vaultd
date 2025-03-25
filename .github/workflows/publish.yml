@@ -23,6 +23,6 @@ jobs:
       windows-build-args: -tags='timetzdata netgo' -trimpath -a -ldflags '-s -w -linkmode external -extldflags "-static"'
       macos-build-args: -tags='timetzdata netgo' -trimpath -a -ldflags '-s -w'
       cgo-enabled: 1
-      project: seedvault
-      project-desc: "seedvault: Secure storage and signing for seeds"
+      project: vaultd
+      project-desc: "vaultd: Secure storage and signing for seeds"
       version-tag: ${{ github.ref_name }}

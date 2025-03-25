@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"go.sia.tech/seedvault/config"
+	"go.sia.tech/vaultd/config"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
