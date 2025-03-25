@@ -10,10 +10,12 @@ import (
 	"go.sia.tech/seedvault/vault"
 )
 
+// A Client is an API client for the seedvault API.
 type Client struct {
 	c jape.Client
 }
 
+// AddSeed adds a new seed to the vault.
 func (c *Client) AddSeed(ctx context.Context, recoveryPhrase string) (resp SeedResponse, err error) {
 	req := AddSeedRequest{
 		RecoveryPhrase: recoveryPhrase,
@@ -22,12 +24,14 @@ func (c *Client) AddSeed(ctx context.Context, recoveryPhrase string) (resp SeedR
 	return
 }
 
+// SeedKeys returns the public keys derived from a seed.
 func (c *Client) SeedKeys(ctx context.Context, id vault.SeedID) ([]SeedKey, error) {
 	var resp SeedKeysResponse
 	err := c.c.GET(ctx, fmt.Sprintf("/seeds/%d/keys", id), &resp)
 	return resp.Keys, err
 }
 
+// GenerateKeys derives new keys from a seed.
 func (c *Client) GenerateKeys(ctx context.Context, id vault.SeedID, count uint64) ([]SeedKey, error) {
 	req := SeedDeriveRequest{
 		Count: count,
@@ -37,6 +41,7 @@ func (c *Client) GenerateKeys(ctx context.Context, id vault.SeedID, count uint64
 	return resp.Keys, err
 }
 
+// Sign signs a transaction using the seedvault.
 func (c *Client) Sign(ctx context.Context, cs consensus.State, txn types.Transaction) (types.Transaction, bool, error) {
 	req := SignRequest{
 		State:       cs,
@@ -48,6 +53,7 @@ func (c *Client) Sign(ctx context.Context, cs consensus.State, txn types.Transac
 	return resp.Transaction, resp.FullySigned, err
 }
 
+// SignV2 signs a v2 transaction using the seedvault.
 func (c *Client) SignV2(ctx context.Context, cs consensus.State, txn types.V2Transaction) (types.V2Transaction, bool, error) {
 	req := SignV2Request{
 		State:       cs,
