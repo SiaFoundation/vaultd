@@ -1,4 +1,4 @@
-module go.sia.tech/seedvault
+module go.sia.tech/vaultd
 
 go 1.24.1
 
@@ -13,7 +13,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	lukechampine.com/flagg v1.1.1
 	lukechampine.com/frand v1.5.1
-	lukechampine.com/upnp v0.3.0
 )
 
 require (
