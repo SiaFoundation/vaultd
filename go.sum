@@ -26,8 +26,8 @@ go.sia.tech/core v0.10.5-0.20250317164759-1a1e10e046f0 h1:7XFNkrIJngVfTIGMuZWz57
 go.sia.tech/core v0.10.5-0.20250317164759-1a1e10e046f0/go.mod h1:i/dfvjZRei6kR2tOLl27PexeYFb/jtCzRsplSBn3Fgc=
 go.sia.tech/coreutils v0.12.2-0.20250324131253-e862b8c96572 h1:53fRK8Ajrv19Mbyv+xRssJWGIhb3uXE2NKSgc3MMYj4=
 go.sia.tech/coreutils v0.12.2-0.20250324131253-e862b8c96572/go.mod h1:prgBD62aPpH1X61mzjmYwpMb7qufIIHRuqystTRokmc=
-go.sia.tech/jape v0.12.2-0.20241010144215-1468bf476af6 h1:hpLnok8mp/n1RwvrAbIwf8d/hQeue1E1jn2JxjIumeo=
-go.sia.tech/jape v0.12.2-0.20241010144215-1468bf476af6/go.mod h1:0AKGMZZKD/fUQXOT747F6A8ZIxooEb2Fr9TdN2eSye4=
+go.sia.tech/jape v0.12.1 h1:xr+o9V8FO8ScRqbSaqYf9bjj1UJ2eipZuNcI1nYousU=
+go.sia.tech/jape v0.12.1/go.mod h1:wU+h6Wh5olDjkPXjF0tbZ1GDgoZ6VTi4naFw91yyWC4=
 go.sia.tech/mux v1.4.0 h1:LgsLHtn7l+25MwrgaPaUCaS8f2W2/tfvHIdXps04sVo=
 go.sia.tech/mux v1.4.0/go.mod h1:iNFi9ifFb2XhuD+LF4t2HBb4Mvgq/zIPKqwXU/NlqHA=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
