@@ -29,8 +29,6 @@ VOLUME [ "/data" ]
 
 # API port
 EXPOSE 9980/tcp
-# RPC port
-EXPOSE 9981/tcp
 
 ENV vaultd_DATA_DIR=/data
 ENV vaultd_CONFIG_FILE=/data/vaultd.yml
