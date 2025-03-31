@@ -1,0 +1,696 @@
+openapi: 3.0.3
+info:
+  title: vaultd API
+  description: API specification for the vaultd service.
+  version: 1.0.0
+
+paths:
+  /seeds:
+    post:
+      summary: Add a new seed to the vault
+      operationId: addSeed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddSeedRequest'
+      responses:
+        '200':
+          description: Seed added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /seeds/{id}:
+    get:
+      summary: Get metadata for a specific seed
+      operationId: getSeedMeta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the seed
+      responses:
+        '200':
+          description: Seed metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedResponse'
+        '404':
+          description: Seed not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /seeds/{id}/keys:
+    get:
+      summary: Get public keys derived from a seed
+      operationId: getSeedKeys
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the seed
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            description: Maximum number of keys to retrieve
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            description: Offset for pagination
+      responses:
+        '200':
+          description: Public keys retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedKeysResponse'
+        '404':
+          description: Seed not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /sign:
+    post:
+      summary: Sign a transaction
+      operationId: signTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignRequest'
+      responses:
+        '200':
+          description: Transaction signed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/sign:
+    post:
+      summary: Sign a v2 transaction
+      operationId: signV2Transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignV2Request'
+      responses:
+        '200':
+          description: V2 transaction signed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignV2Response'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    AddSeedRequest:
+      type: object
+      properties:
+        phrase:
+          type: string
+          description: The recovery phrase for the seed. It must be either a 12-word BIP39 phrase or a 28/29 word siad phrase.
+      required:
+        - phrase
+
+    SeedResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the seed
+        lastIndex:
+          type: integer
+          description: The last index used for key derivation
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the seed was created
+
+    SeedKeysResponse:
+      type: object
+      properties:
+        Keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeedKey'
+
+    SeedKey:
+      type: object
+      properties:
+        publicKey:
+          type: string
+          description: The public key
+        standardAddress:
+          type: string
+          description: The address derived from the public key
+
+    SignRequest:
+      type: object
+      properties:
+        state:
+          $ref: '#/components/schemas/ConsensusState'
+        network:
+          $ref: '#/components/schemas/Network'
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+      required:
+        - state
+        - network
+        - transaction
+
+    SignResponse:
+      type: object
+      properties:
+        transaction:
+          $ref: '#/components/schemas/Transaction'
+        fullySigned:
+          type: boolean
+          description: Whether the transaction is fully signed
+
+    SignV2Request:
+      type: object
+      properties:
+        state:
+          $ref: '#/components/schemas/ConsensusState'
+        network:
+          $ref: '#/components/schemas/Network'
+        transaction:
+          $ref: '#/components/schemas/V2Transaction'
+      required:
+        - state
+        - network
+        - transaction
+
+    SignV2Response:
+      type: object
+      properties:
+        transaction:
+          $ref: '#/components/schemas/V2Transaction'
+        fullySigned:
+          type: boolean
+          description: Whether the transaction is fully signed
+
+    ConsensusState:
+      type: object
+      properties:
+        index:
+          $ref: '#/components/schemas/ChainIndex'
+        prevTimestamps:
+          type: array
+          items:
+            type: string
+            format: date-time
+        depth:
+          type: string
+          description: The depth of the chain
+        childTarget:
+          type: string
+          description: The target for the next block
+        siafundTaxRevenue:
+          $ref: '#/components/schemas/Currency'
+        oakTime:
+          type: string
+          description: Oak hardfork time
+        oakTarget:
+          type: string
+          description: Oak hardfork target
+        foundationSubsidyAddress:
+          $ref: '#/components/schemas/Address'
+        foundationManagementAddress:
+          $ref: '#/components/schemas/Address'
+
+    Transaction:
+      type: object
+      properties:
+        siacoinInputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiacoinInput'
+        siacoinOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiacoinOutput'
+        siafundInputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiafundInput'
+        fileContracts:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileContract'
+        signatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionSignature'
+
+    SiacoinInput:
+      type: object
+      properties:
+        parentID:
+          type: string
+          description: The ID of the parent siacoin output
+        unlockConditions:
+          $ref: '#/components/schemas/UnlockConditions'
+
+    SiacoinOutput:
+      type: object
+      properties:
+        value:
+          $ref: '#/components/schemas/Currency'
+        address:
+          $ref: '#/components/schemas/Address'
+          
+    SiafundInput:
+      type: object
+      properties:
+        parentID:
+          type: string
+          description: The ID of the parent siacoin output
+        unlockConditions:
+          $ref: '#/components/schemas/UnlockConditions'
+        claimAddress:
+          $ref: '#/components/schemas/Address'
+
+    SiafundOutput:
+      type: object
+      properties:
+        value:
+          $ref: '#/components/schemas/Currency'
+        address:
+          $ref: '#/components/schemas/Address'
+
+    FileContract:
+      type: object
+      properties:
+        filesize:
+          type: integer
+        fileMerkleRoot:
+          type: string
+        windowStart:
+          type: integer
+        windowEnd:
+          type: integer
+        payout:
+          $ref: '#/components/schemas/Currency'
+
+    TransactionSignature:
+      type: object
+      properties:
+        parentID:
+          type: string
+        publicKeyIndex:
+          type: integer
+        timelock:
+          type: integer
+        coveredFields:
+          $ref: '#/components/schemas/CoveredFields'
+
+    CoveredFields:
+      type: object
+      properties:
+        wholeTransaction:
+          type: boolean
+
+    UnlockConditions:
+      type: object
+      properties:
+        timelock:
+          type: integer
+        publicKeys:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnlockKey'
+        signaturesRequired:
+          type: integer
+
+    UnlockKey:
+      type: object
+      properties:
+        algorithm:
+          type: string
+        key:
+          type: string
+
+    V2Transaction:
+      type: object
+      properties:
+        siacoinInputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/V2SiacoinInput'
+          description: Inputs for siacoin transactions
+        siacoinOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiacoinOutput'
+          description: Outputs for siacoin transactions
+        siafundInputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/V2SiafundInput'
+          description: Inputs for siafund transactions
+        siafundOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiafundOutput'
+          description: Outputs for siafund transactions
+        fileContracts:
+          type: array
+          items:
+            $ref: '#/components/schemas/V2FileContract'
+          description: File contracts in the transaction
+        fileContractRevisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/V2FileContractRevision'
+          description: Revisions to file contracts
+        fileContractResolutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/V2FileContractResolution'
+          description: Resolutions for file contracts
+        attestations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attestation'
+          description: Attestations included in the transaction
+        arbitraryData:
+          type: string
+          format: byte
+          description: Arbitrary data included in the transaction
+        minerFee:
+          $ref: '#/components/schemas/Currency'
+
+    V2SiacoinInput:
+      type: object
+      properties:
+        parent:
+          $ref: '#/components/schemas/SiacoinElement'
+        satisfiedPolicy:
+          $ref: '#/components/schemas/SatisfiedPolicy'
+
+    V2SiafundInput:
+      type: object
+      properties:
+        parent:
+          $ref: '#/components/schemas/SiafundElement'
+        claimAddress:
+          $ref: '#/components/schemas/Address'
+        satisfiedPolicy:
+          $ref: '#/components/schemas/SatisfiedPolicy'
+
+    V2FileContract:
+      type: object
+      properties:
+        capacity:
+          type: integer
+          description: The capacity of the file contract
+        filesize:
+          type: integer
+          description: The size of the file
+        fileMerkleRoot:
+          type: string
+          description: The Merkle root of the file
+        proofHeight:
+          type: integer
+          description: The height at which the proof is required
+        expirationHeight:
+          type: integer
+          description: The height at which the contract expires
+        renterOutput:
+          $ref: '#/components/schemas/SiacoinOutput'
+        hostOutput:
+          $ref: '#/components/schemas/SiacoinOutput'
+        missedHostValue:
+          $ref: '#/components/schemas/Currency'
+        totalCollateral:
+          $ref: '#/components/schemas/Currency'
+        renterPublicKey:
+          $ref: '#/components/schemas/PublicKey'
+        hostPublicKey:
+          $ref: '#/components/schemas/PublicKey'
+        revisionNumber:
+          type: integer
+          description: The revision number of the contract
+        renterSignature:
+          type: string
+          description: The renter's signature
+        hostSignature:
+          type: string
+          description: The host's signature
+    
+    V2FileContractElement:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the element
+        stateElement:
+          $ref: "#/components/schemas/StateElement"
+        v2FileContract:
+          $ref: "#/components/schemas/V2FileContract"
+
+    V2FileContractRevision:
+      type: object
+      properties:
+        parent:
+          $ref: '#/components/schemas/V2FileContractElement'
+        revision:
+          $ref: '#/components/schemas/V2FileContract'
+
+    V2FileContractResolution:
+      type: object
+      properties:
+        parent:
+          $ref: '#/components/schemas/V2FileContractElement'
+        resolution:
+          $ref: '#/components/schemas/V2FileContractResolutionType'
+
+    V2FileContractResolutionType:
+      type: string
+      enum:
+        - renewal
+        - storageProof
+        - expiration
+      description: The type of file contract resolution
+
+    Attestation:
+      type: object
+      properties:
+        publicKey:
+          $ref: '#/components/schemas/PublicKey'
+        key:
+          type: string
+          description: The key of the attestation
+        value:
+          type: string
+          format: byte
+          description: The value of the attestation
+        signature:
+          $ref: '#/components/schemas/Signature'
+
+    StateElement:
+      type: object
+      properties:
+        leafIndex:
+          type: integer
+          description: The element's position in the state tree
+        merkleProof:
+          type: array
+          items:
+            type: string
+            example: '5114029f691326998fbfea4ca84f98b3d9c7de74ba2d5f33410cade9069f7b20'
+          description: A merkle proof of existence
+
+    SiacoinElement:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the siacoin output
+        stateElement:
+          $ref: '#/components/schemas/StateElement'
+        siacoinOutput:
+          $ref: '#/components/schemas/SiacoinOutput'
+        maturityHeight:
+          type: integer
+          description: The height at which the output matures
+
+    SiafundElement:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the siafund output
+        stateElement:
+          $ref: '#/components/schemas/StateElement'
+        siafundOutput:
+          $ref: '#/components/schemas/SiafundOutput'
+        claimStart:
+          $ref: '#/components/schemas/Currency'
+
+    SatisfiedPolicy:
+      type: object
+      properties:
+        policy: 
+          $ref: '#/components/schemas/SpendPolicy'
+        signatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/Signature'
+        preimages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hash256'
+
+    Address:
+      type: string
+      description: A blockchain address
+      example: '15b89c3f817ef332c6c72992ac67e5014572087822efe5c272137c3bbb32f39a376da65eb5c0'
+      
+    PublicKey:
+      type: string
+      example: 'ed25519:5114029f691326998fbfea4ca84f98b3d9c7de74ba2d5f33410cade9069f7b20'
+      description: An ed25519 public key
+
+    SpendPolicyAbove:
+      type: integer
+      example: 250000
+      description: The height above which the policy is satisfied
+      
+    SpendPolicyAfter:
+      type: integer
+      example: 1743408089
+      description: The unix timestamp after which the policy is satisfied
+    
+    SpendPolicyPublicKey:
+      $ref: '#/components/schemas/PublicKey'
+    
+    SpendPolicyHash:
+      type: string
+      example: 
+      description: The sha256 hash of the preimage that can satisfy the policy
+
+    SpendPolicyThreshold:
+      type: object
+      properties:
+        n: 
+          type: integer
+          description: The number of policies that must be satisfied
+        of:
+          $ref: '#/components/schemas/SpendPolicy'
+          
+    SpendPolicy:
+      type: object
+      properties:
+        type:
+          type: string
+          description: The type of spend policy
+        policy:
+          oneOf:
+            - $ref: '#/components/schemas/SpendPolicyThreshold'
+            - $ref: '#/components/schemas/SpendPolicyHash'
+            - $ref: '#/components/schemas/SpendPolicyPublicKey'
+            - $ref: '#/components/schemas/SpendPolicyAfter'
+            - $ref: '#/components/schemas/SpendPolicyAbove'
+            
+    Hash256:
+      type: string
+      example: 'aebe03723ed2b2a55d239c92ad717a8d397d6c2538b7604694e4ec04d16174d7'
+      description: A 256 bit hash
+      
+    Signature:
+      type: string
+      example: ed92a2c7b833af87a5d796e095375a97c7b361d7019ded2e4b080d63fc5a2ba215cbc4a46ec81ebdcb21e39a23dfc78d2cd8466ebae7f7c5a265a4da6a7d1298
+      description: An ed25519 signature
+      
+    Currency:
+      type: string
+      pattern: "^\\d+$"
+      maxLength: 39 # fits 2^128 - 1
+      description: An unsigned amount of Hastings, the smallest unit of currency in Sia. 1 Siacoin (SC) equals 10^24 Hastings (H).
+      example: '1000000000000000000000000'
+
+    ChainIndex:
+      type: object
+      properties:
+        height:
+          type: integer
+        id:
+          $ref: '#/components/schemas/Hash256'
+
+    Network:
+      type: object
+      properties:
+        name:
+          type: string
+        blockInterval:
+          type: string
+          description: Duration of the block interval
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
