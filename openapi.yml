@@ -5,6 +5,34 @@ info:
   version: 1.0.0
 
 paths:
+  /state:
+    get:
+      summary: Get the current state of the vault node
+      operationId: getState
+      responses:
+        '200':
+          description: Current state retrieved successfully
+          content:
+            application/json:
+              schema:
+                properties:
+                  version:
+                    type: string
+                    description: The version of the vault node
+                  commit:
+                    type: string
+                    description: The commit hash of the vault node
+                  os:
+                    type: string
+                    description: The operating system of the vault node
+                  buildTime:
+                    type: string
+                    format: date-time
+                    description: The build time of the vault node
+                  startTime:
+                    type: string
+                    format: date-time
+                    description: The start time of the vault node
   /seeds:
     post:
       summary: Add a new seed to the vault
@@ -22,6 +50,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SeedResponse'
+        '400':
+          description: Invalid seed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Internal server error
           content:
@@ -76,6 +110,8 @@ paths:
           schema:
             type: integer
             default: 100
+            minimum: 1
+            maximum: 500
             description: Maximum number of keys to retrieve
         - name: offset
           in: query
@@ -97,6 +133,40 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Derive new keys from a seed
+      operationId: deriveSeedKeys
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the seed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  description: Number of keys to derive
+                  example: 10
+      responses:
+        200:
+          description: Keys derived successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedKeysResponse'
+        500:
           description: Internal server error
           content:
             application/json:
@@ -189,7 +259,7 @@ components:
     SeedKeysResponse:
       type: object
       properties:
-        Keys:
+        keys:
           type: array
           items:
             $ref: '#/components/schemas/SeedKey'
@@ -294,10 +364,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SiafundInput'
+        siafundOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiafundOutput'
         fileContracts:
           type: array
           items:
             $ref: '#/components/schemas/FileContract'
+        fileContractRevisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileContractRevision'
+        storageProofs:
+          type: array
+          items:
+            $ref: '#/components/schemas/StorageProof'
+        minerFees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Currency'
+        arbitraryData:
+          type: string
+          format: byte
         signatures:
           type: array
           items:
@@ -352,6 +441,60 @@ components:
           type: integer
         payout:
           $ref: '#/components/schemas/Currency'
+        validProofOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiacoinOutput'
+        missedProofOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiacoinOutput'
+        unlockHash:
+          $ref: '#/components/schemas/Address'
+        revisionNumber:
+          type: integer
+
+    FileContractRevision:
+      type: object
+      properties:
+        parentID:
+          type: string
+        filesize:
+          type: integer
+        fileMerkleRoot:
+          type: string
+        windowStart:
+          type: integer
+        windowEnd:
+          type: integer
+        payout:
+          $ref: '#/components/schemas/Currency'
+        validProofOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiacoinOutput'
+        missedProofOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiacoinOutput'
+        unlockConditions:
+          $ref: '#/components/schemas/UnlockConditions'
+        unlockHash:
+          $ref: '#/components/schemas/Address'
+        revisionNumber:
+          type: integer
+    
+    StorageProof:
+      type: object
+      properties:
+        parentID:
+          type: string
+        leaf:
+          type: integer
+        proof:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hash256'
 
     TransactionSignature:
       type: object
@@ -628,7 +771,7 @@ components:
     
     SpendPolicyHash:
       type: string
-      example: 
+      example: '5114029f691326998fbfea4ca84f98b3d9c7de74ba2d5f33410cade9069f7b20'
       description: The sha256 hash of the preimage that can satisfy the policy
 
     SpendPolicyThreshold:
@@ -686,11 +829,8 @@ components:
           type: string
         blockInterval:
           type: string
-          description: Duration of the block interval
+          description: Duration of the block interval.
 
     ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-          description: Error message
+      type: string
+      description: A description of the error
