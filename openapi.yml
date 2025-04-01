@@ -7,35 +7,35 @@ info:
 paths:
   /state:
     get:
-      summary: Get the current state of the vault node
+      summary: Get the current state of the vault node.
       operationId: getState
       responses:
         '200':
-          description: Current state retrieved successfully
+          description: Current state retrieved successfully.
           content:
             application/json:
               schema:
                 properties:
                   version:
                     type: string
-                    description: The version of the vault node
+                    description: The version of the vault node.
                   commit:
                     type: string
-                    description: The commit hash of the vault node
+                    description: The commit hash of the vault node.
                   os:
                     type: string
-                    description: The operating system of the vault node
+                    description: The operating system of the vault node.
                   buildTime:
                     type: string
                     format: date-time
-                    description: The build time of the vault node
+                    description: The build time of the vault node.
                   startTime:
                     type: string
                     format: date-time
-                    description: The start time of the vault node
+                    description: The start time of the vault node.
   /seeds:
     post:
-      summary: Add a new seed to the vault
+      summary: Add a new seed to the vault.
       operationId: addSeed
       requestBody:
         required: true
@@ -65,7 +65,7 @@ paths:
 
   /seeds/{id}:
     get:
-      summary: Get metadata for a specific seed
+      summary: Get metadata for a specific seed.
       operationId: getSeedMeta
       parameters:
         - name: id
@@ -73,10 +73,10 @@ paths:
           required: true
           schema:
             type: string
-          description: The ID of the seed
+          description: The ID of the seed.
       responses:
         '200':
-          description: Seed metadata retrieved successfully
+          description: Seed metadata retrieved successfully.
           content:
             application/json:
               schema:
@@ -96,7 +96,7 @@ paths:
 
   /seeds/{id}/keys:
     get:
-      summary: Get public keys derived from a seed
+      summary: Get public keys derived from a seed.
       operationId: getSeedKeys
       parameters:
         - name: id
@@ -104,7 +104,7 @@ paths:
           required: true
           schema:
             type: string
-          description: The ID of the seed
+          description: The ID of the seed.
         - name: limit
           in: query
           schema:
@@ -112,7 +112,7 @@ paths:
             default: 100
             minimum: 1
             maximum: 500
-            description: Maximum number of keys to retrieve
+            description: Maximum number of keys to retrieve.
         - name: offset
           in: query
           schema:
@@ -121,7 +121,7 @@ paths:
             description: Offset for pagination
       responses:
         '200':
-          description: Public keys retrieved successfully
+          description: Public keys retrieved successfully.
           content:
             application/json:
               schema:
@@ -139,7 +139,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
     post:
-      summary: Derive new keys from a seed
+      summary: Derive new keys from a seed.
       operationId: deriveSeedKeys
       parameters:
         - name: id
@@ -157,7 +157,7 @@ paths:
               properties:
                 count:
                   type: integer
-                  description: Number of keys to derive
+                  description: Number of keys to derive.
                   example: 10
       responses:
         200:
@@ -174,7 +174,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /sign:
     post:
-      summary: Sign a transaction
+      summary: Sign a transaction.
       operationId: signTransaction
       requestBody:
         required: true
@@ -184,7 +184,7 @@ paths:
               $ref: '#/components/schemas/SignRequest'
       responses:
         '200':
-          description: Transaction signed successfully
+          description: Transaction signed successfully.
           content:
             application/json:
               schema:
@@ -203,7 +203,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /v2/sign:
     post:
-      summary: Sign a v2 transaction
+      summary: Sign a v2 transaction.
       operationId: signV2Transaction
       requestBody:
         required: true
@@ -213,7 +213,7 @@ paths:
               $ref: '#/components/schemas/SignV2Request'
       responses:
         '200':
-          description: V2 transaction signed successfully
+          description: V2 transaction signed successfully.
           content:
             application/json:
               schema:
@@ -272,7 +272,7 @@ components:
           description: The public key
         standardAddress:
           type: string
-          description: The address derived from the public key
+          description: The address derived from the public key.
 
     SignRequest:
       type: object
@@ -295,7 +295,7 @@ components:
           $ref: '#/components/schemas/Transaction'
         fullySigned:
           type: boolean
-          description: Whether the transaction is fully signed
+          description: True if the transaction is fully signed.
 
     SignV2Request:
       type: object
@@ -318,7 +318,7 @@ components:
           $ref: '#/components/schemas/V2Transaction'
         fullySigned:
           type: boolean
-          description: Whether the transaction is fully signed
+          description: True if the transaction is fully signed.
 
     ConsensusState:
       type: object
@@ -332,10 +332,10 @@ components:
             format: date-time
         depth:
           type: string
-          description: The depth of the chain
+          description: The depth of the chain.
         childTarget:
           type: string
-          description: The target for the next block
+          description: The target for the next block.
         siafundTaxRevenue:
           $ref: '#/components/schemas/Currency'
         oakTime:
