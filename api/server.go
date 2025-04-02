@@ -149,7 +149,7 @@ func (a *api) handlePOSTSeedsKeys(jc jape.Context) {
 	jc.Encode(resp)
 }
 
-func (a *api) handlePUTSign(jc jape.Context) {
+func (a *api) handlePOSTSign(jc jape.Context) {
 	var req SignRequest
 	if err := jc.Decode(&req); err != nil {
 		return
@@ -233,7 +233,7 @@ func (a *api) handlePUTSign(jc jape.Context) {
 	jc.Encode(SignResponse{Transaction: txn, FullySigned: signed == len(txn.Signatures)})
 }
 
-func (a *api) handlePUTSignV2(jc jape.Context) {
+func (a *api) handlePOSTSignV2(jc jape.Context) {
 	var req SignV2Request
 	if err := jc.Decode(&req); err != nil {
 		return
@@ -336,7 +336,7 @@ func Handler(v *vault.Vault, log *zap.Logger) http.Handler {
 		"GET /seeds/:id/keys":  a.handleGETSeedsKeys,
 		"POST /seeds/:id/keys": a.handlePOSTSeedsKeys,
 
-		"POST /sign":    a.handlePUTSign,
-		"POST /v2/sign": a.handlePUTSignV2,
+		"POST /sign":    a.handlePOSTSign,
+		"POST /v2/sign": a.handlePOSTSignV2,
 	})
 }
