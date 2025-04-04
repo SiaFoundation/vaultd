@@ -4,7 +4,7 @@ Provides a secure signing store for BIP39 and siad seed phrases. Any number of p
 
 ## Configuration
 
-The YAML config file is the recommended way to configure `vaultd`. Some settings can be overridden using CLI flags or environment variables. 
+The YAML config file is the recommended way to configure `vaultd`. Some settings can be overridden using CLI flags or environment variables.
 
 ### Default Paths
 
@@ -36,8 +36,7 @@ The default config path can be changed using the `VAULTD_CONFIG_FILE` environmen
 ### Example Config File
 
 ```yml
-```yaml
-directory: /etc/hostd
+directory: /etc/vaultd
 secret: my secret password
 http:
   address: :9980
@@ -89,7 +88,7 @@ recommended to bind it to `127.0.0.1` to prevent unauthorized access.
 
 ## Creating the container
 
-Create a new file named `docker-compose.yml`. You can use the following as a template. The `/data` mount is where the database is stored. 
+Create a new file named `docker-compose.yml`. You can use the following as a template. The `/data` mount is where the database is stored.
 
 ```yml
 services:
