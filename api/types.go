@@ -33,8 +33,9 @@ type (
 
 	// SeedKey is a public key and its associated standard address.
 	SeedKey struct {
-		PublicKey       types.PublicKey `json:"publicKey"`
-		StandardAddress types.Address   `json:"standardAddress"`
+		PublicKey   types.PublicKey   `json:"publicKey"`
+		Address     types.Address     `json:"address"`
+		SpendPolicy types.SpendPolicy `json:"spendPolicy"`
 	}
 
 	// SeedKeysResponse is a response to a seed keys request.
