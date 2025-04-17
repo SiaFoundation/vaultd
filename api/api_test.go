@@ -81,8 +81,10 @@ func TestAddSeed(t *testing.T) {
 		switch {
 		case key.PublicKey != expectedKey:
 			t.Errorf("key %d: expected public key %x, got %x", i, expectedKey, key.PublicKey)
-		case key.StandardAddress != expectedAddr:
-			t.Errorf("key %d: expected address %s, got %s", i, expectedAddr, key.StandardAddress)
+		case key.Address != expectedAddr:
+			t.Errorf("key %d: expected address %s, got %s", i, expectedAddr, key.Address)
+		case key.SpendPolicy.Address() != expectedAddr:
+			t.Errorf("key %d: expected spend policy %v", i, key.SpendPolicy)
 		}
 	}
 }
@@ -116,8 +118,10 @@ func TestAddSiadSeed(t *testing.T) {
 		switch {
 		case key.PublicKey != expectedKey:
 			t.Errorf("key %d: expected public key %x, got %x", i, expectedKey, key.PublicKey)
-		case key.StandardAddress != expectedAddr:
-			t.Errorf("key %d: expected address %s, got %s", i, expectedAddr, key.StandardAddress)
+		case key.Address != expectedAddr:
+			t.Errorf("key %d: expected address %s, got %s", i, expectedAddr, key.Address)
+		case key.SpendPolicy.Address() != expectedAddr:
+			t.Errorf("key %d: expected spend policy %v", i, key.SpendPolicy)
 		}
 	}
 }

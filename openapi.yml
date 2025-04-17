@@ -270,9 +270,11 @@ components:
         publicKey:
           type: string
           description: The public key
-        standardAddress:
+        address:
           type: string
           description: The address derived from the public key.
+        spendPolicy:
+          $ref: '#/components/schemas/SpendPolicy'
 
     SignRequest:
       type: object

@@ -119,7 +119,10 @@ func (a *api) handleGETSeedsKeys(jc jape.Context) {
 
 	for i, key := range keys {
 		resp.Keys[i].PublicKey = key
-		resp.Keys[i].StandardAddress = types.StandardUnlockHash(key)
+		resp.Keys[i].SpendPolicy = types.SpendPolicy{
+			Type: types.PolicyTypeUnlockConditions(types.StandardUnlockConditions(key)),
+		}
+		resp.Keys[i].Address = resp.Keys[i].SpendPolicy.Address()
 	}
 	jc.Encode(resp)
 }
@@ -144,7 +147,10 @@ func (a *api) handlePOSTSeedsKeys(jc jape.Context) {
 			return
 		}
 		resp.Keys[i].PublicKey = key
-		resp.Keys[i].StandardAddress = types.StandardUnlockHash(key)
+		resp.Keys[i].SpendPolicy = types.SpendPolicy{
+			Type: types.PolicyTypeUnlockConditions(types.StandardUnlockConditions(key)),
+		}
+		resp.Keys[i].Address = resp.Keys[i].SpendPolicy.Address()
 	}
 	jc.Encode(resp)
 }
