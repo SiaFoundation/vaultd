@@ -151,7 +151,6 @@ func (a *api) handlePOSTSeedsKeys(jc jape.Context) {
 			Type: types.PolicyTypeUnlockConditions(types.StandardUnlockConditions(key)),
 		}
 		resp.Keys[i].Address = resp.Keys[i].SpendPolicy.Address()
-
 	}
 	jc.Encode(resp)
 }
