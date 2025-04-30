@@ -8,6 +8,15 @@ import (
 // one version to the next. Migrations are used to update existing databases to
 // match the schema in init.sql.
 var migrations = []func(tx *txn, log *zap.Logger) error{
+	// migration 2: removes the unused syncer tables
+	func(tx *txn, _ *zap.Logger) error {
+		_, err := tx.Exec(`DROP TABLE IF EXISTS syncer_peers;`)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`DROP TABLE IF EXISTS syncer_bans;`)
+		return err
+	},
 	// migration 1: add an index on the date created column of the seeds table
 	// to speed up sorting
 	func(tx *txn, _ *zap.Logger) error {
