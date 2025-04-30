@@ -65,6 +65,18 @@ func (c *Client) SignV2(ctx context.Context, cs consensus.State, txn types.V2Tra
 	return resp.Transaction, resp.FullySigned, err
 }
 
+// Lock locks the vault.
+func (c *Client) Lock(ctx context.Context) error {
+	return c.c.PUT(ctx, "/lock", nil)
+}
+
+// Unlock unlocks the vault with the given secret.
+func (c *Client) Unlock(ctx context.Context, secret string) error {
+	return c.c.POST(ctx, "/unlock", &UnlockRequest{
+		Secret: secret,
+	}, nil)
+}
+
 // NewClient creates a new API client.
 func NewClient(address, password string) *Client {
 	return &Client{
