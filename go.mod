@@ -18,7 +18,6 @@ require (
 require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
-	go.sia.tech/mux v1.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/tools v0.32.0 // indirect
