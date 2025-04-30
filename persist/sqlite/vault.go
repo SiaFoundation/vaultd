@@ -84,11 +84,26 @@ func seedMeta(tx *txn, seedID vault.SeedID) (vault.SeedMeta, error) {
 		return vault.SeedMeta{}, fmt.Errorf("failed to get seed meta: %w", err)
 	}
 
-	err = tx.QueryRow(`SELECT COALESCE(MAX(seed_index), 0) FROM signing_keys WHERE seed_id=$1`, seedID).Scan(&meta.LastIndex)
-	if err != nil {
-		return vault.SeedMeta{}, fmt.Errorf("failed to get last index: %w", err)
+	if err := decorateSeedMeta(tx, []vault.SeedMeta{meta}); err != nil {
+		return vault.SeedMeta{}, fmt.Errorf("failed to decorate seed meta: %w", err)
 	}
 	return meta, nil
+}
+
+// Seeds returns a paginated list of seeds. The list is
+// sorted by creation time, with the most recent seeds
+// first. Limit and offset are used for pagination.
+func (s *Store) Seeds(limit, offset int) (seeds []vault.SeedMeta, err error) {
+	err = s.transaction(func(tx *txn) error {
+		seeds, err = getSeeds(tx, limit, offset)
+		if err != nil {
+			return err
+		} else if err = decorateSeedMeta(tx, seeds); err != nil {
+			return fmt.Errorf("failed to decorate seed meta: %w", err)
+		}
+		return nil
+	})
+	return
 }
 
 // AddSeed adds an encrypted seed to the store. If the
@@ -171,6 +186,39 @@ func (s *Store) NextIndex(seedID vault.SeedID) (index uint64, err error) {
 		return nil
 	})
 	return
+}
+
+func decorateSeedMeta(tx *txn, seeds []vault.SeedMeta) error {
+	stmt, err := tx.Prepare(`SELECT COALESCE(MAX(seed_index), 0) FROM signing_keys WHERE seed_id=$1`)
+	if err != nil {
+		return fmt.Errorf("failed to prepare statement: %w", err)
+	}
+	defer stmt.Close()
+
+	for i := range seeds {
+		if err := stmt.QueryRow(seeds[i].ID).Scan(&seeds[i].LastIndex); err != nil {
+			return fmt.Errorf("failed to get last index: %w", err)
+		}
+	}
+	return nil
+}
+
+func getSeeds(tx *txn, limit, offset int) ([]vault.SeedMeta, error) {
+	rows, err := tx.Query(`SELECT id, date_created FROM seeds ORDER BY date_created ASC LIMIT $1 OFFSET $2`, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query seeds: %w", err)
+	}
+	defer rows.Close()
+
+	var seeds []vault.SeedMeta
+	for rows.Next() {
+		var meta vault.SeedMeta
+		if err := rows.Scan(&meta.ID, (*sqlTime)(&meta.CreatedAt)); err != nil {
+			return nil, fmt.Errorf("failed to scan seed: %w", err)
+		}
+		seeds = append(seeds, meta)
+	}
+	return seeds, rows.Err()
 }
 
 func checkSeedExists(tx *txn, seedID vault.SeedID) error {

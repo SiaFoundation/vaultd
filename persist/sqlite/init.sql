@@ -4,6 +4,7 @@ CREATE TABLE seeds (
 	encrypted_seed BLOB UNIQUE NOT NULL CHECK(length(encrypted_seed) = 72),
 	date_created INTEGER NOT NULL
 );
+CREATE INDEX seeds_date_created_idx ON seeds (date_created ASC);
 
 CREATE TABLE signing_keys (
 	public_key BLOB PRIMARY KEY CHECK(length(public_key) = 32),

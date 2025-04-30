@@ -24,6 +24,11 @@ type (
 		Phrase string `json:"phrase"`
 	}
 
+	// SeedsResponse is a response to a seeds request.
+	SeedsResponse struct {
+		Seeds []vault.SeedMeta `json:"seeds"`
+	}
+
 	// SeedResponse is a response to a seed request.
 	SeedResponse struct {
 		ID        vault.SeedID `json:"id"`
