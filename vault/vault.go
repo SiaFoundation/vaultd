@@ -27,9 +27,9 @@ var (
 	ErrSaltSet = errors.New("salt already set")
 	// ErrIncorrectSecret is returned when the secret is incorrect.
 	ErrIncorrectSecret = errors.New("incorrect secret")
-	// ErrAlreadyLocked is returned when unlocking a vault
+	// ErrUnlocked is returned when unlocking a vault
 	// that is already unlocked.
-	ErrAlreadyUnlocked = errors.New("already unlocked")
+	ErrUnlocked = errors.New("already unlocked")
 	// ErrLocked is returned when trying to access a locked vault.
 	ErrLocked = errors.New("vault is locked")
 )
@@ -71,6 +71,10 @@ type (
 		// AddSeed adds an encrypted seed to the store. If the
 		// seed has already been added, its metadata is returned.
 		AddSeed(mac types.Hash256, encryptedSeed []byte) (meta SeedMeta, err error)
+		// Seeds returns a paginated list of seeds. The list is
+		// sorted by creation time, with the most recent seeds
+		// first.
+		Seeds(limit, offset int) ([]SeedMeta, error)
 		// Seed returns the encrypted seed associated with the given
 		// seed ID. If the seed ID is not found, [ErrNotFound] is returned.
 		Seed(SeedID) ([]byte, error)
@@ -174,6 +178,21 @@ func (v *Vault) AddSeed(seed *[32]byte) (SeedMeta, error) {
 	return v.store.AddSeed(mac, encrypted)
 }
 
+// Seeds returns a paginated list of seeds. The list is
+// sorted by creation time, with the most recent seeds
+// first.
+func (v *Vault) Seeds(limit, offset int) ([]SeedMeta, error) {
+	done, err := v.tg.Add()
+	if err != nil {
+		return nil, err
+	}
+	defer done()
+
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	return v.store.Seeds(limit, offset)
+}
+
 // SeedMeta returns metadata about the seed. If the seed ID is not found,
 // [ErrNotFound] is returned.
 func (v *Vault) SeedMeta(id SeedID) (SeedMeta, error) {
@@ -243,7 +262,7 @@ func (v *Vault) Unlock(secret string) error {
 	defer v.mu.Unlock()
 
 	if v.aead != nil && v.mac != nil {
-		return ErrAlreadyUnlocked
+		return ErrUnlocked
 	}
 
 	salt, err := v.store.KeySalt()
