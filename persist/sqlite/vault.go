@@ -72,27 +72,9 @@ func (s *Store) AddKeyIndex(id vault.SeedID, pk types.PublicKey, index uint64) e
 	})
 }
 
-func seedMeta(tx *txn, seedID vault.SeedID) (vault.SeedMeta, error) {
-	meta := vault.SeedMeta{
-		ID: seedID,
-	}
-
-	err := tx.QueryRow(`SELECT date_created FROM seeds WHERE id=$1`, seedID).Scan((*sqlTime)(&meta.CreatedAt))
-	if errors.Is(err, sql.ErrNoRows) {
-		return vault.SeedMeta{}, vault.ErrNotFound
-	} else if err != nil {
-		return vault.SeedMeta{}, fmt.Errorf("failed to get seed meta: %w", err)
-	}
-
-	if err := decorateSeedMeta(tx, []vault.SeedMeta{meta}); err != nil {
-		return vault.SeedMeta{}, fmt.Errorf("failed to decorate seed meta: %w", err)
-	}
-	return meta, nil
-}
-
 // Seeds returns a paginated list of seeds. The list is
-// sorted by creation time, with the most recent seeds
-// first. Limit and offset are used for pagination.
+// sorted by creation time, ASC. Limit and offset are used
+// for pagination.
 func (s *Store) Seeds(limit, offset int) (seeds []vault.SeedMeta, err error) {
 	err = s.transaction(func(tx *txn) error {
 		seeds, err = getSeeds(tx, limit, offset)
@@ -219,6 +201,24 @@ func getSeeds(tx *txn, limit, offset int) ([]vault.SeedMeta, error) {
 		seeds = append(seeds, meta)
 	}
 	return seeds, rows.Err()
+}
+
+func seedMeta(tx *txn, seedID vault.SeedID) (vault.SeedMeta, error) {
+	meta := vault.SeedMeta{
+		ID: seedID,
+	}
+
+	err := tx.QueryRow(`SELECT date_created FROM seeds WHERE id=$1`, seedID).Scan((*sqlTime)(&meta.CreatedAt))
+	if errors.Is(err, sql.ErrNoRows) {
+		return vault.SeedMeta{}, vault.ErrNotFound
+	} else if err != nil {
+		return vault.SeedMeta{}, fmt.Errorf("failed to get seed meta: %w", err)
+	}
+
+	if err := decorateSeedMeta(tx, []vault.SeedMeta{meta}); err != nil {
+		return vault.SeedMeta{}, fmt.Errorf("failed to decorate seed meta: %w", err)
+	}
+	return meta, nil
 }
 
 func checkSeedExists(tx *txn, seedID vault.SeedID) error {
