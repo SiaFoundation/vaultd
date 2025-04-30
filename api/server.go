@@ -327,6 +327,29 @@ func (a *api) handlePOSTSignV2(jc jape.Context) {
 	})
 }
 
+func (a *api) handlePOSTUnlock(jc jape.Context) {
+	var req UnlockRequest
+	if err := jc.Decode(&req); err != nil {
+		return
+	}
+
+	switch err := a.vault.Unlock(req.Secret); err {
+	case nil:
+		jc.Encode(nil)
+	case vault.ErrAlreadyUnlocked:
+		jc.Error(err, http.StatusBadRequest)
+	case vault.ErrIncorrectSecret:
+		jc.Error(err, http.StatusUnauthorized)
+	default:
+		jc.Error(err, http.StatusInternalServerError)
+	}
+}
+
+func (a *api) handlePUTLock(jc jape.Context) {
+	a.vault.Lock()
+	jc.Encode(nil)
+}
+
 // Handler returns an HTTP handler for the vaultd API.
 func Handler(v *vault.Vault, log *zap.Logger) http.Handler {
 	a := &api{
@@ -341,6 +364,9 @@ func Handler(v *vault.Vault, log *zap.Logger) http.Handler {
 		"GET /seeds/:id":       a.handleGETSeedsID,
 		"GET /seeds/:id/keys":  a.handleGETSeedsKeys,
 		"POST /seeds/:id/keys": a.handlePOSTSeedsKeys,
+
+		"POST /unlock": a.handlePOSTUnlock,
+		"PUT /lock":    a.handlePUTLock,
 
 		"POST /sign":    a.handlePOSTSign,
 		"POST /v2/sign": a.handlePOSTSignV2,

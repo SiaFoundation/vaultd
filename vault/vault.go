@@ -12,7 +12,6 @@ import (
 	"go.sia.tech/core/types"
 	"go.sia.tech/coreutils/threadgroup"
 	"go.sia.tech/coreutils/wallet"
-	"go.uber.org/zap"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/chacha20poly1305"
@@ -28,6 +27,11 @@ var (
 	ErrSaltSet = errors.New("salt already set")
 	// ErrIncorrectSecret is returned when the secret is incorrect.
 	ErrIncorrectSecret = errors.New("incorrect secret")
+	// ErrAlreadyLocked is returned when unlocking a vault
+	// that is already unlocked.
+	ErrAlreadyUnlocked = errors.New("already unlocked")
+	// ErrLocked is returned when trying to access a locked vault.
+	ErrLocked = errors.New("vault is locked")
 )
 
 type (
@@ -95,7 +99,12 @@ func (v *Vault) Close() error {
 	return nil
 }
 
+// derivePrivateKey derives a private key from the seed ID and index.
+// It is expected that the caller holds the mutex.
 func (v *Vault) derivePrivateKey(id SeedID, index uint64) (types.PrivateKey, error) {
+	if v.aead == nil || v.mac == nil {
+		return types.PrivateKey{}, ErrLocked
+	}
 	encryptedSeed, err := v.store.Seed(id)
 	if err != nil {
 		return types.PrivateKey{}, fmt.Errorf("failed to get seed: %w", err)
@@ -146,6 +155,10 @@ func (v *Vault) AddSeed(seed *[32]byte) (SeedMeta, error) {
 
 	v.mu.Lock()
 	defer v.mu.Unlock()
+
+	if v.aead == nil || v.mac == nil {
+		return SeedMeta{}, ErrLocked
+	}
 
 	v.mac.Reset()
 	if _, err := v.mac.Write(seed[:]); err != nil {
@@ -216,48 +229,84 @@ func (v *Vault) NextKey(id SeedID) (types.PublicKey, error) {
 	return sk.PublicKey(), nil
 }
 
-// New creates a new Vault with the given secret. If the secret is
-// incorrect, it returns [ErrIncorrectSecret].
-func New(s Store, secret string, log *zap.Logger) (*Vault, error) {
-	salt, err := s.KeySalt()
+// Unlock unlocks the Vault with the given secret. If the Vault is
+// already unlocked, an error is returned. If the secret is incorrect,
+// [ErrIncorrectSecret] is returned.
+func (v *Vault) Unlock(secret string) error {
+	done, err := v.tg.Add()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get key salt: %w", err)
+		return err
+	}
+	defer done()
+
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	if v.aead != nil && v.mac != nil {
+		return ErrAlreadyUnlocked
+	}
+
+	salt, err := v.store.KeySalt()
+	if err != nil {
+		return fmt.Errorf("failed to get key salt: %w", err)
 	} else if len(salt) == 0 {
 		salt = frand.Bytes(32)
-		if err := s.SetKeySalt(salt); err != nil {
-			return nil, fmt.Errorf("failed to set key salt: %w", err)
+		if err := v.store.SetKeySalt(salt); err != nil {
+			return fmt.Errorf("failed to set key salt: %w", err)
 		}
 	}
 
 	encryptionKey := argon2.IDKey([]byte(secret), salt, 3, 64*1024, 4, 32)
 	aead, err := chacha20poly1305.NewX(encryptionKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AEAD: %w", err)
+		return fmt.Errorf("failed to create AEAD: %w", err)
 	}
 
 	mac, err := blake2b.New256(encryptionKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create MAC: %w", err)
+		return fmt.Errorf("failed to create MAC: %w", err)
 	}
 
-	buf, err := s.BytesForVerify()
+	buf, err := v.store.BytesForVerify()
 	if err != nil && !errors.Is(err, ErrNotFound) {
-		return nil, fmt.Errorf("failed to get bytes for verify: %w", err)
+		return fmt.Errorf("failed to get bytes for verify: %w", err)
 	} else if err == nil {
 		defer clear(buf)
 
 		_, err := aead.Open(buf[aead.NonceSize():], buf[:aead.NonceSize()], buf[aead.NonceSize():], nil)
 		if err != nil {
 			if strings.Contains(err.Error(), "message authentication failed") {
-				return nil, ErrIncorrectSecret
+				return ErrIncorrectSecret
 			}
-			return nil, fmt.Errorf("failed to verify encryption key: %w", err)
+			return fmt.Errorf("failed to verify encryption key: %w", err)
 		}
 	}
+
+	v.aead = aead
+	v.mac = mac
+	return nil
+}
+
+// Lock locks the Vault. All keys are cleared and the Vault is
+// inaccessible until it is unlocked again. It is safe to call
+// Lock multiple times.
+func (v *Vault) Lock() {
+	done, err := v.tg.Add()
+	if err != nil {
+		return
+	}
+	defer done()
+
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.aead = nil
+	v.mac = nil
+}
+
+// New creates a new Vault.
+func New(s Store) *Vault {
 	return &Vault{
 		tg:    threadgroup.New(),
 		store: s,
-		aead:  aead,
-		mac:   mac,
-	}, nil
+	}
 }
