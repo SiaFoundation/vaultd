@@ -97,6 +97,15 @@ type (
 	}
 )
 
+// isLocked returns true if the Vault is locked.
+// It is expected that the caller holds the mutex.
+func (v *Vault) isLocked() error {
+	if v.aead != nil && v.mac != nil {
+		return nil
+	}
+	return ErrLocked
+}
+
 // Close closes the Vault.
 func (v *Vault) Close() error {
 	v.tg.Stop()
@@ -106,9 +115,10 @@ func (v *Vault) Close() error {
 // derivePrivateKey derives a private key from the seed ID and index.
 // It is expected that the caller holds the mutex.
 func (v *Vault) derivePrivateKey(id SeedID, index uint64) (types.PrivateKey, error) {
-	if v.aead == nil || v.mac == nil {
-		return types.PrivateKey{}, ErrLocked
+	if err := v.isLocked(); err != nil {
+		return types.PrivateKey{}, err
 	}
+
 	encryptedSeed, err := v.store.Seed(id)
 	if err != nil {
 		return types.PrivateKey{}, fmt.Errorf("failed to get seed: %w", err)
@@ -160,8 +170,8 @@ func (v *Vault) AddSeed(seed *[32]byte) (SeedMeta, error) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
-	if v.aead == nil || v.mac == nil {
-		return SeedMeta{}, ErrLocked
+	if err := v.isLocked(); err != nil {
+		return SeedMeta{}, err
 	}
 
 	v.mac.Reset()
