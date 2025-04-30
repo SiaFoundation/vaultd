@@ -24,6 +24,11 @@ type (
 		Phrase string `json:"phrase"`
 	}
 
+	// SeedsResponse is a response to a seeds request.
+	SeedsResponse struct {
+		Seeds []vault.SeedMeta `json:"seeds"`
+	}
+
 	// SeedResponse is a response to a seed request.
 	SeedResponse struct {
 		ID        vault.SeedID `json:"id"`
@@ -72,5 +77,11 @@ type (
 	SignV2Response struct {
 		Transaction types.V2Transaction `json:"transaction"`
 		FullySigned bool                `json:"fullySigned"`
+	}
+
+	// An UnlockRequest is a request to unlock the vault.
+	// The secret is the key used to unlock the vault.
+	UnlockRequest struct {
+		Secret string `json:"secret"`
 	}
 )

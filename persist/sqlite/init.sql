@@ -4,6 +4,7 @@ CREATE TABLE seeds (
 	encrypted_seed BLOB UNIQUE NOT NULL CHECK(length(encrypted_seed) = 72),
 	date_created INTEGER NOT NULL
 );
+CREATE INDEX seeds_date_created_idx ON seeds (date_created ASC);
 
 CREATE TABLE signing_keys (
 	public_key BLOB PRIMARY KEY CHECK(length(public_key) = 32),
@@ -12,18 +13,6 @@ CREATE TABLE signing_keys (
 );
 CREATE INDEX signing_keys_seed_id_idx ON signing_keys (seed_id);
 CREATE INDEX signing_keys_seed_id_seed_index_idx ON signing_keys (seed_id, seed_index ASC);
-
-CREATE TABLE syncer_peers (
-	peer_address TEXT PRIMARY KEY NOT NULL,
-	first_seen INTEGER NOT NULL
-);
-
-CREATE TABLE syncer_bans (
-	net_cidr TEXT PRIMARY KEY NOT NULL,
-	expiration INTEGER NOT NULL,
-	reason TEXT NOT NULL
-);
-CREATE INDEX syncer_bans_expiration_idx ON syncer_bans (expiration);
 
 CREATE TABLE global_settings (
 	id INTEGER PRIMARY KEY NOT NULL DEFAULT 0 CHECK (id = 0), -- enforce a single row

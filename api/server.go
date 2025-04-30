@@ -37,6 +37,36 @@ func (a *api) handleGETState(jc jape.Context) {
 	})
 }
 
+func (a *api) handleGETSeeds(jc jape.Context) {
+	var (
+		limit  = 100
+		offset = 0
+	)
+
+	if jc.DecodeForm("limit", &limit) != nil {
+		return
+	} else if jc.DecodeForm("offset", &offset) != nil {
+		return
+	}
+
+	if limit < 1 || limit > 500 {
+		jc.Error(errors.New("limit must be between 1 and 500"), http.StatusBadRequest)
+		return
+	} else if offset < 0 {
+		jc.Error(errors.New("offset must be non-negative"), http.StatusBadRequest)
+		return
+	}
+
+	seeds, err := a.vault.Seeds(offset, limit)
+	if err != nil {
+		jc.Error(err, http.StatusInternalServerError)
+		return
+	}
+	jc.Encode(SeedsResponse{
+		Seeds: seeds,
+	})
+}
+
 func (a *api) handlePOSTSeeds(jc jape.Context) {
 	var req AddSeedRequest
 	if err := jc.Decode(&req); err != nil {
@@ -327,6 +357,29 @@ func (a *api) handlePOSTSignV2(jc jape.Context) {
 	})
 }
 
+func (a *api) handlePOSTUnlock(jc jape.Context) {
+	var req UnlockRequest
+	if err := jc.Decode(&req); err != nil {
+		return
+	}
+
+	switch err := a.vault.Unlock(req.Secret); err {
+	case nil:
+		jc.Encode(nil)
+	case vault.ErrUnlocked:
+		jc.Error(err, http.StatusBadRequest)
+	case vault.ErrIncorrectSecret:
+		jc.Error(err, http.StatusUnauthorized)
+	default:
+		jc.Error(err, http.StatusInternalServerError)
+	}
+}
+
+func (a *api) handlePUTLock(jc jape.Context) {
+	a.vault.Lock()
+	jc.Encode(nil)
+}
+
 // Handler returns an HTTP handler for the vaultd API.
 func Handler(v *vault.Vault, log *zap.Logger) http.Handler {
 	a := &api{
@@ -337,10 +390,14 @@ func Handler(v *vault.Vault, log *zap.Logger) http.Handler {
 	return jape.Mux(map[string]jape.Handler{
 		"GET /state": a.handleGETState,
 
+		"GET /seeds":           a.handleGETSeeds,
 		"POST /seeds":          a.handlePOSTSeeds,
 		"GET /seeds/:id":       a.handleGETSeedsID,
 		"GET /seeds/:id/keys":  a.handleGETSeedsKeys,
 		"POST /seeds/:id/keys": a.handlePOSTSeedsKeys,
+
+		"POST /unlock": a.handlePOSTUnlock,
+		"PUT /lock":    a.handlePUTLock,
 
 		"POST /sign":    a.handlePOSTSign,
 		"POST /v2/sign": a.handlePOSTSignV2,

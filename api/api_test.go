@@ -17,7 +17,7 @@ import (
 	"lukechampine.com/frand"
 )
 
-func startServer(tb testing.TB) (client *Client) {
+func startServer(tb testing.TB, secret string) (client *Client) {
 	tb.Helper()
 	log := zap.NewNop()
 
@@ -33,11 +33,13 @@ func startServer(tb testing.TB) (client *Client) {
 	}
 	tb.Cleanup(func() { store.Close() })
 
-	vault, err := vault.New(store, "foo bar baz", log.Named("vault"))
-	if err != nil {
-		tb.Fatal(err)
-	}
+	vault := vault.New(store)
 	tb.Cleanup(func() { vault.Close() })
+	if secret != "" {
+		if err := vault.Unlock(secret); err != nil {
+			tb.Fatal(err)
+		}
+	}
 
 	s := &http.Server{
 		Handler: Handler(vault, log.Named("api")),
@@ -53,7 +55,7 @@ func startServer(tb testing.TB) (client *Client) {
 }
 
 func TestAddSeed(t *testing.T) {
-	client := startServer(t)
+	client := startServer(t, "foo bar baz")
 
 	phrase := wallet.NewSeedPhrase()
 
@@ -90,7 +92,7 @@ func TestAddSeed(t *testing.T) {
 }
 
 func TestAddSiadSeed(t *testing.T) {
-	client := startServer(t)
+	client := startServer(t, "foo bar baz")
 
 	phrase := "touchy inroads aptitude perfect seventh tycoon zinger madness firm cause diode owls meant knife nuisance skirting umpire sapling reruns batch molten urchins jaded nodes"
 
@@ -127,7 +129,7 @@ func TestAddSiadSeed(t *testing.T) {
 }
 
 func TestSignV1(t *testing.T) {
-	client := startServer(t)
+	client := startServer(t, "foo bar baz")
 
 	phrase := wallet.NewSeedPhrase()
 
@@ -199,7 +201,7 @@ func TestSignV1(t *testing.T) {
 }
 
 func TestSignV2(t *testing.T) {
-	client := startServer(t)
+	client := startServer(t, "foo bar baz")
 
 	phrase := wallet.NewSeedPhrase()
 
@@ -256,5 +258,43 @@ func TestSignV2(t *testing.T) {
 	signature := txn.SiacoinInputs[0].SatisfiedPolicy.Signatures[0]
 	if !wallet.KeyFromSeed(&seed, 0).PublicKey().VerifyHash(sigHash, signature) {
 		t.Fatal("signature verification failed")
+	}
+}
+
+func TestLockUnlock(t *testing.T) {
+	client := startServer(t, "")
+
+	phrase := wallet.NewSeedPhrase()
+
+	_, err := client.AddSeed(context.Background(), phrase)
+	if err.Error() != "vault is locked" {
+		t.Fatalf("expected \"vault is locked\", got %q", err)
+	}
+
+	// first call to unlock initializes the vault
+	if err := client.Unlock(context.Background(), "foo bar baz"); err != nil {
+		t.Fatal(err)
+	} else if err := client.Lock(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = client.AddSeed(context.Background(), phrase)
+	if err.Error() != "vault is locked" {
+		t.Fatalf("expected \"vault is locked\", got %q", err)
+	}
+
+	if err := client.Unlock(context.Background(), "foo bar baz"); err != nil {
+		t.Fatal(err)
+	}
+
+	meta, err := client.AddSeed(context.Background(), phrase)
+	if err != nil {
+		t.Fatal(err)
+	} else if meta.ID != 1 {
+		t.Fatalf("expected ID 1, got %d", meta.ID)
+	}
+
+	if _, err := client.GenerateKeys(context.Background(), meta.ID, 5); err != nil {
+		t.Fatal(err)
 	}
 }
