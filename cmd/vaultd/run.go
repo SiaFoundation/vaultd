@@ -33,11 +33,14 @@ func run(ctx context.Context, log *zap.Logger) error {
 	}
 	defer store.Close()
 
-	vault, err := vault.New(store, cfg.Secret, log.Named("vault"))
-	if err != nil {
-		return fmt.Errorf("failed to create vault: %w", err)
-	}
+	vault := vault.New(store)
 	defer vault.Close()
+
+	if cfg.Secret != "" {
+		if err := vault.Unlock(cfg.Secret); err != nil {
+			return fmt.Errorf("failed to unlock vault: %w", err)
+		}
+	}
 
 	server := &http.Server{
 		ReadTimeout:  5 * time.Second,
