@@ -297,4 +297,11 @@ func TestLockUnlock(t *testing.T) {
 	if _, err := client.GenerateKeys(context.Background(), meta.ID, 5); err != nil {
 		t.Fatal(err)
 	}
+
+	// relock and try to unlock with the wrong password
+	if err := client.Lock(context.Background()); err != nil {
+		t.Fatal(err)
+	} else if err := client.Unlock(context.Background(), "wrong password"); err.Error() != vault.ErrIncorrectSecret.Error() {
+		t.Fatalf("expected \"incorrect secret\", got %q", err)
+	}
 }

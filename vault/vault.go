@@ -72,8 +72,7 @@ type (
 		// seed has already been added, its metadata is returned.
 		AddSeed(mac types.Hash256, encryptedSeed []byte) (meta SeedMeta, err error)
 		// Seeds returns a paginated list of seeds. The list is
-		// sorted by creation time, with the most recent seeds
-		// first.
+		// sorted by creation time, ASC.
 		Seeds(limit, offset int) ([]SeedMeta, error)
 		// Seed returns the encrypted seed associated with the given
 		// seed ID. If the seed ID is not found, [ErrNotFound] is returned.
@@ -196,8 +195,7 @@ func (v *Vault) AddSeed(seed *[32]byte) (SeedMeta, error) {
 }
 
 // Seeds returns a paginated list of seeds. The list is
-// sorted by creation time, with the most recent seeds
-// first.
+// sorted by creation time, ASC.
 func (v *Vault) Seeds(limit, offset int) ([]SeedMeta, error) {
 	done, err := v.tg.Add()
 	if err != nil {
