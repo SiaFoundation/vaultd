@@ -45,13 +45,13 @@ func run(ctx context.Context, log *zap.Logger) error {
 
 	var manager *chain.Manager
 	if cfg.Explorer.URL != "" {
-		manager = chain.New(cfg.Explorer.URL)
+		manager = chain.New(cfg.Explorer.URL, chain.WithLog(log.Named("chain")))
 	} else {
 		switch cfg.Explorer.Network {
 		case "mainnet":
-			manager = chain.New("https://api.siascan.com")
+			manager = chain.New("https://api.siascan.com", chain.WithLog(log.Named("chain")))
 		case "zen":
-			manager = chain.New("https://api.siascan.com/zen")
+			manager = chain.New("https://api.siascan.com/zen", chain.WithLog(log.Named("chain")))
 		default:
 			return fmt.Errorf("unknown explorer network %q", cfg.Explorer.Network)
 		}

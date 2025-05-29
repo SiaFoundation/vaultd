@@ -50,6 +50,7 @@ func (m *Manager) pollConsensusState() {
 	for {
 		select {
 		case <-ctx.Done():
+			log.Debug("stopping consensus state polling")
 			return
 		case <-ticker.C:
 		}
@@ -61,7 +62,9 @@ func (m *Manager) pollConsensusState() {
 		}
 		m.mu.Lock()
 		if m.cs.Index != cs.Index {
-			log.Debug("consensus state updated", zap.Stringer("tip", cs.Index), zap.Stringer("prev", m.cs.Index))
+			log.Debug("consensus state updated", zap.Stringer("tip", cs.Index), zap.Stringer("prev", m.cs.Index), zap.String("network", cs.Network.Name))
+		} else {
+			log.Debug("consensus state unchanged", zap.Stringer("tip", cs.Index), zap.String("network", cs.Network.Name))
 		}
 		m.cs = cs
 		m.mu.Unlock()
@@ -86,6 +89,7 @@ func (m *Manager) TipState(ctx context.Context) (consensus.State, error) {
 	if err != nil {
 		return consensus.State{}, fmt.Errorf("failed to get consensus state: %w", err)
 	}
+	m.log.Debug("initial consensus state retrieved", zap.Stringer("tip", cs.Index), zap.String("network", network.Name))
 	m.cs = cs
 	go m.pollConsensusState()
 	return m.cs, nil

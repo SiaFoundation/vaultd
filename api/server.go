@@ -200,6 +200,7 @@ func (a *api) getConsensusState(ctx context.Context, state *consensus.State, net
 		cs.Network = network
 		return cs, nil
 	} else if state == nil && network == nil {
+		a.log.Debug("getting consensus state from chain")
 		return a.chain.TipState(ctx)
 	} else if state == nil {
 		return consensus.State{}, errors.New("state must be provided if network is provided")
