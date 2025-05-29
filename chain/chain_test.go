@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 
@@ -24,9 +25,12 @@ func startConsensusServer(tb testing.TB) (string, func(consensus.State)) {
 	}
 	tb.Cleanup(func() { l.Close() })
 
+	var mu sync.Mutex
 	var cs consensus.State
 	updateConsensusFunc := func(newState consensus.State) {
+		mu.Lock()
 		cs = newState
+		mu.Unlock()
 	}
 
 	s := &http.Server{
@@ -35,6 +39,8 @@ func startConsensusServer(tb testing.TB) (string, func(consensus.State)) {
 				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 				return
 			}
+			mu.Lock()
+			defer mu.Unlock()
 			switch r.URL.Path {
 			case "/consensus/network":
 				w.Header().Set("Content-Type", "application/json")
@@ -48,6 +54,8 @@ func startConsensusServer(tb testing.TB) (string, func(consensus.State)) {
 				if err := json.NewEncoder(w).Encode(cs); err != nil {
 					panic(err)
 				}
+			default:
+				http.NotFound(w, r)
 			}
 		}),
 	}

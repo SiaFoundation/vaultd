@@ -39,6 +39,7 @@ type (
 		File   LogFile `yaml:"file,omitempty"`
 	}
 
+	// Explorer contains the configuration for the optional blockchain explorer.
 	Explorer struct {
 		Network string `yaml:"network,omitempty"`
 		URL     string `yaml:"url,omitempty"`

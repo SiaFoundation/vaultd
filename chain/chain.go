@@ -16,10 +16,8 @@ import (
 // An Option is a functional option for configuring a Manager
 type Option func(*Manager)
 
-var client = &http.Client{
-	Timeout: 10 * time.Second,
-}
-
+// A Manager manages the consensus state of a blockchain by periodically
+// polling an explorer API.
 type Manager struct {
 	tg  *threadgroup.ThreadGroup
 	log *zap.Logger
@@ -31,19 +29,8 @@ type Manager struct {
 	cs consensus.State
 }
 
-// getNetwork retrieves the network information from the explorer.
-// This only needs to be called once, as the network information is cached.
-// It is assumed that the caller will hold the mutex before calling this method.
-func getNetwork(ctx context.Context, baseURL string) (network consensus.Network, err error) {
-	err = makeGETRequest(ctx, baseURL+"/consensus/network", &network)
-	return
-}
-
-// getConsensusState retrieves the current consensus state from the explorer.
-func getConsensusState(ctx context.Context, network *consensus.Network, baseURL string) (cs consensus.State, err error) {
-	err = makeGETRequest(ctx, baseURL+"/consensus/state", &cs)
-	cs.Network = network
-	return
+var client = &http.Client{
+	Timeout: 10 * time.Second,
 }
 
 // pollConsensusState periodically polls the explorer for the latest consensus state.
@@ -78,7 +65,6 @@ func (m *Manager) pollConsensusState() {
 		}
 		m.cs = cs
 		m.mu.Unlock()
-
 	}
 }
 
@@ -86,19 +72,22 @@ func (m *Manager) pollConsensusState() {
 func (m *Manager) TipState(ctx context.Context) (consensus.State, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
-	if m.cs.Network == nil {
-		network, err := getNetwork(ctx, m.baseURL)
-		if err != nil {
-			return consensus.State{}, fmt.Errorf("failed to get network: %w", err)
-		}
-		cs, err := getConsensusState(ctx, &network, m.baseURL)
-		if err != nil {
-			return consensus.State{}, fmt.Errorf("failed to get consensus state: %w", err)
-		}
-		m.cs = cs
-		go m.pollConsensusState()
+	if m.cs.Network != nil {
+		// fast path if the consensus state has already been initialized
+		return m.cs, nil
 	}
+
+	// initialize the consensus state if it hasn't been done yet
+	network, err := getNetwork(ctx, m.baseURL)
+	if err != nil {
+		return consensus.State{}, fmt.Errorf("failed to get network: %w", err)
+	}
+	cs, err := getConsensusState(ctx, &network, m.baseURL)
+	if err != nil {
+		return consensus.State{}, fmt.Errorf("failed to get consensus state: %w", err)
+	}
+	m.cs = cs
+	go m.pollConsensusState()
 	return m.cs, nil
 }
 
@@ -126,6 +115,21 @@ func makeGETRequest(ctx context.Context, url string, obj any) error {
 		return fmt.Errorf("failed to decode response: %w", err)
 	}
 	return nil
+}
+
+// getNetwork retrieves the network information from the explorer.
+// This only needs to be called once, as the network information is cached.
+// It is assumed that the caller will hold the mutex before calling this method.
+func getNetwork(ctx context.Context, baseURL string) (network consensus.Network, err error) {
+	err = makeGETRequest(ctx, baseURL+"/consensus/network", &network)
+	return
+}
+
+// getConsensusState retrieves the current consensus state from the explorer.
+func getConsensusState(ctx context.Context, network *consensus.Network, baseURL string) (cs consensus.State, err error) {
+	err = makeGETRequest(ctx, baseURL+"/consensus/state", &cs)
+	cs.Network = network
+	return
 }
 
 // WithLog sets the logger for the chain.
