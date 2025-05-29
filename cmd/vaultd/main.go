@@ -180,12 +180,8 @@ func main() {
 
 		if cfg.Directory != "" {
 			checkFatalError("failed to create data directory", os.MkdirAll(cfg.Directory, 0700))
-		}
-
-		if cfg.HTTP.Password == "" {
+		} else if cfg.HTTP.Password == "" {
 			checkFatalError("missing password", errors.New("HTTP auth password must be set using ENV variable or config file"))
-		} else if cfg.Secret == "" {
-			checkFatalError("missing secret", errors.New("secret must be set using ENV variable or config file"))
 		}
 
 		var logCores []zapcore.Core
