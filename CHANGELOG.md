@@ -1,3 +1,13 @@
+## 0.3.1 (2025-05-29)
+
+### Features
+
+- Added `[POST] /blind/sign`
+
+#### The `state` and `network` fields are now optional for `[POST] /v2/sign` and `[POST] /sign`
+
+When `state` and `network` are not provided, the current state will be polled from SiaScan.
+
 ## 0.3.0 (2025-05-26)
 
 ### Breaking Changes
