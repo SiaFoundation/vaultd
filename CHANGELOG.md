@@ -1,3 +1,10 @@
+## 0.3.2 (2025-05-29)
+
+### Fixes
+
+- Vault secret is no longer required at startup.
+- Update core to v0.13.1 and coreutils to v0.15.2
+
 ## 0.3.1 (2025-05-29)
 
 ### Features
