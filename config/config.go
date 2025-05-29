@@ -39,14 +39,20 @@ type (
 		File   LogFile `yaml:"file,omitempty"`
 	}
 
+	Explorer struct {
+		Network string `yaml:"network,omitempty"`
+		URL     string `yaml:"url,omitempty"`
+	}
+
 	// Config contains the configuration for the host.
 	Config struct {
 		Secret        string `yaml:"secret,omitempty"`
 		Directory     string `yaml:"directory,omitempty"`
 		AutoOpenWebUI bool   `yaml:"autoOpenWebUI,omitempty"`
 
-		HTTP HTTP `yaml:"http,omitempty"`
-		Log  Log  `yaml:"log,omitempty"`
+		HTTP     HTTP     `yaml:"http,omitempty"`
+		Log      Log      `yaml:"log,omitempty"`
+		Explorer Explorer `yaml:"explorer,omitempty"`
 	}
 )
 

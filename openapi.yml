@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: vaultd API
   description: API specification for the vaultd service.
@@ -37,6 +37,8 @@ paths:
     post:
       summary: Add a new seed to the vault.
       operationId: addSeed
+      tags:
+        - Seeds
       requestBody:
         required: true
         content:
@@ -67,6 +69,8 @@ paths:
     get:
       summary: Get metadata for a specific seed.
       operationId: getSeedMeta
+      tags:
+        - Seeds
       parameters:
         - name: id
           in: path
@@ -98,6 +102,8 @@ paths:
     get:
       summary: Get public keys derived from a seed.
       operationId: getSeedKeys
+      tags:
+        - Seeds
       parameters:
         - name: id
           in: path
@@ -141,6 +147,8 @@ paths:
     post:
       summary: Derive new keys from a seed.
       operationId: deriveSeedKeys
+      tags:
+        - Seeds
       parameters:
         - name: id
           in: path
@@ -176,6 +184,8 @@ paths:
     post:
       summary: Sign a transaction.
       operationId: signTransaction
+      tags:
+        - Signing
       requestBody:
         required: true
         content:
@@ -205,6 +215,8 @@ paths:
     post:
       summary: Sign a v2 transaction.
       operationId: signV2Transaction
+      tags:
+        - Signing
       requestBody:
         required: true
         content:
@@ -218,6 +230,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SignV2Response'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /blind/sign:
+    post:
+      summary: Blind sign a 32-byte hash.
+      operationId: blindSignTransaction
+      tags:
+        - Signing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlindSignRequest'
+      responses:
+        '200':
+          description: Transaction blind signed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlindSignResponse'
         '400':
           description: Bad request
           content:
@@ -286,8 +330,6 @@ components:
         transaction:
           $ref: '#/components/schemas/Transaction'
       required:
-        - state
-        - network
         - transaction
 
     SignResponse:
@@ -304,13 +346,13 @@ components:
       properties:
         state:
           $ref: '#/components/schemas/ConsensusState'
+          optional: true
         network:
           $ref: '#/components/schemas/Network'
+          optional: true
         transaction:
           $ref: '#/components/schemas/V2Transaction'
       required:
-        - state
-        - network
         - transaction
 
     SignV2Response:
@@ -321,6 +363,23 @@ components:
         fullySigned:
           type: boolean
           description: True if the transaction is fully signed.
+    
+    BlindSignRequest:
+      type: object
+      properties:
+        publicKey:
+          $ref: '#/components/schemas/PublicKey'
+        sigHash:
+          $ref: '#/components/schemas/Hash256'
+      required:
+        - publicKey
+        - sigHash
+
+    BlindSignResponse:
+      type: object
+      properties:
+        signature:
+          $ref: '#/components/schemas/Signature'
 
     ConsensusState:
       type: object

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"go.sia.tech/core/consensus"
 	"go.sia.tech/core/types"
 	"go.sia.tech/jape"
 	"go.sia.tech/vaultd/vault"
@@ -42,11 +41,12 @@ func (c *Client) GenerateKeys(ctx context.Context, id vault.SeedID, count uint64
 }
 
 // Sign signs a transaction using the vaultd.
-func (c *Client) Sign(ctx context.Context, cs consensus.State, txn types.Transaction) (types.Transaction, bool, error) {
+func (c *Client) Sign(ctx context.Context, txn types.Transaction, opts ...SignOption) (types.Transaction, bool, error) {
 	req := SignRequest{
-		State:       cs,
-		Network:     *cs.Network,
 		Transaction: txn,
+	}
+	for _, opt := range opts {
+		opt(&req)
 	}
 	var resp SignResponse
 	err := c.c.POST(ctx, "/sign", req, &resp)
@@ -54,11 +54,12 @@ func (c *Client) Sign(ctx context.Context, cs consensus.State, txn types.Transac
 }
 
 // SignV2 signs a v2 transaction using the vaultd.
-func (c *Client) SignV2(ctx context.Context, cs consensus.State, txn types.V2Transaction) (types.V2Transaction, bool, error) {
+func (c *Client) SignV2(ctx context.Context, txn types.V2Transaction, opts ...SignV2Option) (types.V2Transaction, bool, error) {
 	req := SignV2Request{
-		State:       cs,
-		Network:     *cs.Network,
 		Transaction: txn,
+	}
+	for _, opt := range opts {
+		opt(&req)
 	}
 	var resp SignV2Response
 	err := c.c.POST(ctx, "/v2/sign", req, &resp)

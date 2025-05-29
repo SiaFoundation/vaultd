@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/ed25519"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"go.sia.tech/core/consensus"
 	"go.sia.tech/core/types"
 	"go.sia.tech/coreutils/wallet"
 	"go.sia.tech/jape"
@@ -21,9 +23,16 @@ import (
 var startTime = time.Now()
 
 type (
+	// A Chain is an interface that provides access to the current
+	// consensus state of the blockchain.
+	Chain interface {
+		TipState(ctx context.Context) (consensus.State, error)
+	}
+
 	api struct {
 		vault *vault.Vault
 		log   *zap.Logger
+		chain Chain
 	}
 )
 
@@ -185,17 +194,28 @@ func (a *api) handlePOSTSeedsKeys(jc jape.Context) {
 	jc.Encode(resp)
 }
 
+func (a *api) getConsensusState(ctx context.Context, state *consensus.State, network *consensus.Network) (consensus.State, error) {
+	if state != nil && network != nil {
+		cs := *state
+		cs.Network = network
+		return cs, nil
+	} else if state == nil && network == nil {
+		return a.chain.TipState(ctx)
+	} else if state == nil {
+		return consensus.State{}, errors.New("state must be provided if network is provided")
+	}
+	return consensus.State{}, errors.New("network must be provided if state is provided")
+}
+
 func (a *api) handlePOSTSign(jc jape.Context) {
 	var req SignRequest
 	if err := jc.Decode(&req); err != nil {
 		return
 	}
 
-	cs := req.State
-	cs.Network = &req.Network
-
-	if cs.Index.Height >= cs.Network.HardforkV2.RequireHeight {
-		jc.Error(errors.New("v1 transactions are not supported after the require height"), http.StatusBadRequest)
+	cs, err := a.getConsensusState(jc.Request.Context(), req.State, req.Network)
+	if err != nil {
+		jc.Error(err, http.StatusBadRequest)
 		return
 	}
 
@@ -277,8 +297,11 @@ func (a *api) handlePOSTSignV2(jc jape.Context) {
 
 	txn := req.Transaction
 
-	cs := req.State
-	cs.Network = &req.Network
+	cs, err := a.getConsensusState(jc.Request.Context(), req.State, req.Network)
+	if err != nil {
+		jc.Error(err, http.StatusBadRequest)
+		return
+	}
 
 	if cs.Index.Height < cs.Network.HardforkV2.AllowHeight {
 		jc.Error(errors.New("v2 transactions are not supported until after the allow height"), http.StatusBadRequest)
@@ -357,6 +380,23 @@ func (a *api) handlePOSTSignV2(jc jape.Context) {
 	})
 }
 
+func (a *api) handlePOSTBlindSign(jc jape.Context) {
+	var req BlindSignRequest
+	if err := jc.Decode(&req); err != nil {
+		return
+	}
+
+	sig, err := a.vault.Sign(req.PublicKey, req.SigHash)
+	if errors.Is(err, vault.ErrNotFound) {
+		jc.Error(err, http.StatusNotFound)
+		return
+	} else if err != nil {
+		jc.Error(err, http.StatusInternalServerError)
+		return
+	}
+	jc.Encode(BlindSignResponse{Signature: sig})
+}
+
 func (a *api) handlePOSTUnlock(jc jape.Context) {
 	var req UnlockRequest
 	if err := jc.Decode(&req); err != nil {
@@ -381,12 +421,12 @@ func (a *api) handlePUTLock(jc jape.Context) {
 }
 
 // Handler returns an HTTP handler for the vaultd API.
-func Handler(v *vault.Vault, log *zap.Logger) http.Handler {
+func Handler(c Chain, v *vault.Vault, log *zap.Logger) http.Handler {
 	a := &api{
+		chain: c,
 		vault: v,
 		log:   log,
 	}
-
 	return jape.Mux(map[string]jape.Handler{
 		"GET /state": a.handleGETState,
 
@@ -401,5 +441,7 @@ func Handler(v *vault.Vault, log *zap.Logger) http.Handler {
 
 		"POST /sign":    a.handlePOSTSign,
 		"POST /v2/sign": a.handlePOSTSignV2,
+
+		"POST /blind/sign": a.handlePOSTBlindSign,
 	})
 }

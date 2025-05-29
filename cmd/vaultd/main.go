@@ -146,6 +146,9 @@ var cfg = config.Config{
 			EnableANSI: runtime.GOOS != "windows",
 		},
 	},
+	Explorer: config.Explorer{
+		Network: "mainnet",
+	},
 }
 
 func main() {
@@ -158,6 +161,7 @@ func main() {
 	rootCmd := flagg.Root
 	rootCmd.TextVar(&cfg.Log.StdOut.Level, "log.level", cfg.Log.StdOut.Level, "the log level for stdout")
 	rootCmd.StringVar(&cfg.HTTP.Address, "http.addr", cfg.HTTP.Address, "the address to listen on for the HTTP API")
+	rootCmd.StringVar(&cfg.Explorer.Network, "network", cfg.Explorer.Network, "the network to use for the explorer")
 	rootCmd.Usage = flagg.SimpleUsage(rootCmd, ``)
 
 	cmd := flagg.Parse(flagg.Tree{

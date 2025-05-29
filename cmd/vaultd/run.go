@@ -11,6 +11,7 @@ import (
 
 	"go.sia.tech/jape"
 	"go.sia.tech/vaultd/api"
+	"go.sia.tech/vaultd/chain"
 	"go.sia.tech/vaultd/persist/sqlite"
 	"go.sia.tech/vaultd/vault"
 	"go.uber.org/zap"
@@ -42,10 +43,24 @@ func run(ctx context.Context, log *zap.Logger) error {
 		}
 	}
 
+	var manager *chain.Manager
+	if cfg.Explorer.URL != "" {
+		manager = chain.New(cfg.Explorer.URL)
+	} else {
+		switch cfg.Explorer.Network {
+		case "mainnet":
+			manager = chain.New("https://api.siascan.com")
+		case "zen":
+			manager = chain.New("https://api.siascan.com/zen")
+		default:
+			return fmt.Errorf("unknown explorer network %q", cfg.Explorer.Network)
+		}
+	}
+
 	server := &http.Server{
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: time.Minute,
-		Handler:      jape.BasicAuth(cfg.HTTP.Password)(api.Handler(vault, log.Named("api"))),
+		Handler:      jape.BasicAuth(cfg.HTTP.Password)(api.Handler(manager, vault, log.Named("api"))),
 	}
 	defer server.Close()
 	go func() {

@@ -55,9 +55,9 @@ type (
 
 	// SignRequest is a request to sign a transaction.
 	SignRequest struct {
-		State       consensus.State   `json:"state"`
-		Network     consensus.Network `json:"network"`
-		Transaction types.Transaction `json:"transaction"`
+		State       *consensus.State   `json:"state"`
+		Network     *consensus.Network `json:"network"`
+		Transaction types.Transaction  `json:"transaction"`
 	}
 
 	// SignResponse is a response to a sign request.
@@ -68,8 +68,8 @@ type (
 
 	// SignV2Request is a request to sign a v2 transaction.
 	SignV2Request struct {
-		State       consensus.State     `json:"state"`
-		Network     consensus.Network   `json:"network"`
+		State       *consensus.State    `json:"state"`
+		Network     *consensus.Network  `json:"network"`
 		Transaction types.V2Transaction `json:"transaction"`
 	}
 
@@ -84,4 +84,39 @@ type (
 	UnlockRequest struct {
 		Secret string `json:"secret"`
 	}
+
+	// A BlindSignRequest is a request to blind sign a sighash.
+	BlindSignRequest struct {
+		PublicKey types.PublicKey `json:"publicKey"`
+		SigHash   types.Hash256   `json:"sigHash"`
+	}
+
+	// A BlindSignResponse is a response to a blind sign request.
+	BlindSignResponse struct {
+		Signature types.Signature `json:"signature"`
+	}
 )
+
+// A SignOption is a functional option for the SignRequest.
+type SignOption func(*SignRequest)
+
+// SignWithState is an option for the SignRequest that sets the
+// State and Network fields based on the provided consensus.State.
+func SignWithState(cs consensus.State) SignOption {
+	return func(req *SignRequest) {
+		req.State = &cs
+		req.Network = cs.Network
+	}
+}
+
+// A SignV2Option is a functional option for the SignV2Request.
+type SignV2Option func(*SignV2Request)
+
+// SignV2WithState is an option for the SignV2Request that sets the
+// State and Network fields based on the provided consensus.State.
+func SignV2WithState(cs consensus.State) SignV2Option {
+	return func(req *SignV2Request) {
+		req.State = &cs
+		req.Network = cs.Network
+	}
+}

@@ -17,7 +17,15 @@ import (
 	"lukechampine.com/frand"
 )
 
-func startServer(tb testing.TB, secret string) (client *Client) {
+type chain struct {
+	cs consensus.State
+}
+
+func (c *chain) TipState(ctx context.Context) (consensus.State, error) {
+	return c.cs, nil
+}
+
+func startServer(tb testing.TB, chain Chain, secret string) (client *Client) {
 	tb.Helper()
 	log := zap.NewNop()
 
@@ -42,7 +50,7 @@ func startServer(tb testing.TB, secret string) (client *Client) {
 	}
 
 	s := &http.Server{
-		Handler: Handler(vault, log.Named("api")),
+		Handler: Handler(chain, vault, log.Named("api")),
 	}
 	tb.Cleanup(func() { s.Close() })
 	go func() {
@@ -55,7 +63,7 @@ func startServer(tb testing.TB, secret string) (client *Client) {
 }
 
 func TestAddSeed(t *testing.T) {
-	client := startServer(t, "foo bar baz")
+	client := startServer(t, &chain{}, "foo bar baz")
 
 	phrase := wallet.NewSeedPhrase()
 
@@ -92,7 +100,7 @@ func TestAddSeed(t *testing.T) {
 }
 
 func TestAddSiadSeed(t *testing.T) {
-	client := startServer(t, "foo bar baz")
+	client := startServer(t, &chain{}, "foo bar baz")
 
 	phrase := "touchy inroads aptitude perfect seventh tycoon zinger madness firm cause diode owls meant knife nuisance skirting umpire sapling reruns batch molten urchins jaded nodes"
 
@@ -129,7 +137,7 @@ func TestAddSiadSeed(t *testing.T) {
 }
 
 func TestSignV1(t *testing.T) {
-	client := startServer(t, "foo bar baz")
+	client := startServer(t, &chain{}, "foo bar baz")
 
 	phrase := wallet.NewSeedPhrase()
 
@@ -188,7 +196,7 @@ func TestSignV1(t *testing.T) {
 
 	sigHash := cs.WholeSigHash(txn, txn.Signatures[0].ParentID, 0, 0, nil)
 
-	txn, signed, err := client.Sign(context.Background(), cs, txn)
+	txn, signed, err := client.Sign(context.Background(), txn, SignWithState(cs))
 	if err != nil {
 		t.Fatal(err)
 	} else if !signed {
@@ -201,7 +209,7 @@ func TestSignV1(t *testing.T) {
 }
 
 func TestSignV2(t *testing.T) {
-	client := startServer(t, "foo bar baz")
+	client := startServer(t, &chain{}, "foo bar baz")
 
 	phrase := wallet.NewSeedPhrase()
 
@@ -249,7 +257,181 @@ func TestSignV2(t *testing.T) {
 
 	sigHash := cs.InputSigHash(txn)
 
-	txn, signed, err := client.SignV2(context.Background(), cs, txn)
+	txn, signed, err := client.SignV2(context.Background(), txn, SignV2WithState(cs))
+	if err != nil {
+		t.Fatal(err)
+	} else if !signed {
+		t.Fatal("expected transaction to be signed")
+	}
+	signature := txn.SiacoinInputs[0].SatisfiedPolicy.Signatures[0]
+	if !wallet.KeyFromSeed(&seed, 0).PublicKey().VerifyHash(sigHash, signature) {
+		t.Fatal("signature verification failed")
+	}
+}
+
+func TestSignLoadState(t *testing.T) {
+	cs := consensus.State{
+		Network: &consensus.Network{
+			HardforkFoundation: struct {
+				Height          uint64        `json:"height"`
+				PrimaryAddress  types.Address `json:"primaryAddress"`
+				FailsafeAddress types.Address `json:"failsafeAddress"`
+			}{
+				Height: 8,
+			},
+			HardforkV2: struct {
+				AllowHeight   uint64 `json:"allowHeight"`
+				RequireHeight uint64 `json:"requireHeight"`
+			}{
+				AllowHeight:   10,
+				RequireHeight: 20,
+			},
+		},
+		Index: types.ChainIndex{
+			Height: 8, // before v2 hardfork to ensure the replay prefix is 1
+			ID:     frand.Entropy256(),
+		},
+	}
+	ch := &chain{cs}
+	client := startServer(t, ch, "foo bar baz")
+
+	phrase := wallet.NewSeedPhrase()
+
+	var seed [32]byte
+	if err := wallet.SeedFromPhrase(&seed, phrase); err != nil {
+		t.Fatal(err)
+	}
+
+	meta, err := client.AddSeed(context.Background(), phrase)
+	if err != nil {
+		t.Fatal(err)
+	} else if meta.ID != 1 {
+		t.Fatalf("expected ID 1, got %d", meta.ID)
+	}
+
+	_, err = client.GenerateKeys(context.Background(), meta.ID, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	txn := types.Transaction{
+		SiacoinInputs: []types.SiacoinInput{
+			{
+				ParentID: frand.Entropy256(),
+				UnlockConditions: types.UnlockConditions{
+					PublicKeys: []types.UnlockKey{
+						wallet.KeyFromSeed(&seed, 0).PublicKey().UnlockKey(),
+					},
+					SignaturesRequired: 1,
+				},
+			},
+		},
+	}
+	txn.Signatures = []types.TransactionSignature{
+		{
+			ParentID:      types.Hash256(txn.SiacoinInputs[0].ParentID),
+			CoveredFields: types.CoveredFields{WholeTransaction: true},
+		},
+	}
+
+	sigHash := cs.WholeSigHash(txn, txn.Signatures[0].ParentID, 0, 0, nil)
+
+	signedTxn, signed, err := client.Sign(context.Background(), txn)
+	if err != nil {
+		t.Fatal(err)
+	} else if !signed {
+		t.Fatal("expected transaction to be signed")
+	}
+	signature := types.Signature(signedTxn.Signatures[0].Signature)
+	if !wallet.KeyFromSeed(&seed, 0).PublicKey().VerifyHash(sigHash, signature) {
+		t.Fatal("signature verification failed")
+	}
+
+	ch.cs.Index.Height = 10 // after v2 hardfork to ensure the replay prefix updates
+	cs = ch.cs
+
+	signedTxn2, signed, err := client.Sign(context.Background(), txn)
+	if err != nil {
+		t.Fatal(err)
+	} else if !signed {
+		t.Fatal("expected transaction to be signed")
+	}
+	signature2 := types.Signature(signedTxn2.Signatures[0].Signature)
+	if signature2 == signature {
+		t.Fatal("expected different signature after changing replay prefix")
+	}
+
+	sigHash = cs.WholeSigHash(txn, txn.Signatures[0].ParentID, 0, 0, nil)
+	if !wallet.KeyFromSeed(&seed, 0).PublicKey().VerifyHash(sigHash, signature2) {
+		t.Fatal("signature verification failed")
+	}
+}
+
+func TestSignV2LoadState(t *testing.T) {
+	cs := consensus.State{
+		Network: &consensus.Network{
+			HardforkFoundation: struct {
+				Height          uint64        `json:"height"`
+				PrimaryAddress  types.Address `json:"primaryAddress"`
+				FailsafeAddress types.Address `json:"failsafeAddress"`
+			}{
+				Height: 8,
+			},
+			HardforkV2: struct {
+				AllowHeight   uint64 `json:"allowHeight"`
+				RequireHeight uint64 `json:"requireHeight"`
+			}{
+				AllowHeight:   10,
+				RequireHeight: 20,
+			},
+		},
+		Index: types.ChainIndex{
+			Height: 10,
+			ID:     frand.Entropy256(),
+		},
+	}
+	ch := &chain{cs}
+	client := startServer(t, ch, "foo bar baz")
+
+	phrase := wallet.NewSeedPhrase()
+
+	var seed [32]byte
+	if err := wallet.SeedFromPhrase(&seed, phrase); err != nil {
+		t.Fatal(err)
+	}
+
+	pk := wallet.KeyFromSeed(&seed, 0).PublicKey()
+
+	meta, err := client.AddSeed(context.Background(), phrase)
+	if err != nil {
+		t.Fatal(err)
+	} else if meta.ID != 1 {
+		t.Fatalf("expected ID 1, got %d", meta.ID)
+	}
+
+	_, err = client.GenerateKeys(context.Background(), meta.ID, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	txn := types.V2Transaction{
+		SiacoinInputs: []types.V2SiacoinInput{
+			{
+				Parent: types.SiacoinElement{
+					ID: frand.Entropy256(),
+				},
+				SatisfiedPolicy: types.SatisfiedPolicy{
+					Policy: types.SpendPolicy{
+						Type: types.PolicyTypePublicKey(pk),
+					},
+				},
+			},
+		},
+	}
+
+	sigHash := cs.InputSigHash(txn)
+
+	txn, signed, err := client.SignV2(context.Background(), txn)
 	if err != nil {
 		t.Fatal(err)
 	} else if !signed {
@@ -262,7 +444,7 @@ func TestSignV2(t *testing.T) {
 }
 
 func TestLockUnlock(t *testing.T) {
-	client := startServer(t, "")
+	client := startServer(t, &chain{}, "")
 
 	phrase := wallet.NewSeedPhrase()
 
