@@ -84,16 +84,20 @@ func (a *api) handlePOSTSeeds(jc jape.Context) {
 
 	var seed [32]byte
 	defer clear(seed[:])
-	if len(strings.Fields(req.Phrase)) != 12 {
+	switch len(strings.Fields(req.Phrase)) {
+	case 28, 29:
 		if err := siad.SeedFromPhrase(&seed, req.Phrase); err != nil {
 			jc.Error(err, http.StatusBadRequest)
 			return
 		}
-	} else {
+	case 12:
 		if err := wallet.SeedFromPhrase(&seed, req.Phrase); err != nil {
 			jc.Error(err, http.StatusBadRequest)
 			return
 		}
+	default:
+		jc.Error(errors.New("invalid phrase length, must be BIP39 12 word seed or 28 word Sia seed"), http.StatusBadRequest)
+		return
 	}
 
 	meta, err := a.vault.AddSeed(&seed)
