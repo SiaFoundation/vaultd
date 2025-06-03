@@ -1,3 +1,10 @@
+## 0.3.3 (2025-06-03)
+
+### Features
+
+- Check for proper seed lengths.
+- Harden legacy seed generation.
+
 ## 0.3.2 (2025-05-29)
 
 ### Fixes
