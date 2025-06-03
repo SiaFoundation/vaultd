@@ -24,7 +24,12 @@ const (
 )
 
 var (
-	ErrSeedLength  = errors.New("invalid length")
+	// ErrSeedLength is returned when the seed does not have the expected
+	// length of 38 bytes (32 bytes of entropy and 6 bytes of checksum).
+	ErrSeedLength = errors.New("invalid length")
+
+	// ErrUnknownWord is returned when a word in the phrase is not found in the
+	// english dictionary.
 	ErrUnknownWord = errors.New("word not found")
 )
 
@@ -142,7 +147,6 @@ func intToPhrase(bi *big.Int) string {
 // SeedFromPhrase derives a 32-byte seed from the supplied 28/29 word
 // siad recovery phrase.
 func SeedFromPhrase(seed *[32]byte, phrase string) error {
-
 	b, err := phraseToInt(phrase)
 	if err != nil {
 		return err
@@ -159,7 +163,7 @@ func SeedFromPhrase(seed *[32]byte, phrase string) error {
 	return nil
 }
 
-// SeedToPhrase converts a 32-byte seed into a 28/29 word siad recovery phrase.
+// SeedToPhrase converts a 32-byte seed into a checksummed 28/29 word siad recovery phrase.
 func SeedToPhrase(seed *[32]byte) string {
 	checksum := types.HashBytes(seed[:])
 	checksumSeed := append(seed[:], checksum[:checksumBytes]...)

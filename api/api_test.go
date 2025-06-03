@@ -102,7 +102,7 @@ func TestAddSeed(t *testing.T) {
 func TestAddSiadSeed(t *testing.T) {
 	client := startServer(t, &chain{}, "foo bar baz")
 
-	phrase := "touchy inroads aptitude perfect seventh tycoon zinger madness firm cause diode owls meant knife nuisance skirting umpire sapling reruns batch molten urchins jaded nodes"
+	phrase := "mocked southern dehydrate unusual navy pegs aided ruined festival yearbook total building wife greater befit drunk judge thwart erosion hefty saucepan hijack request welders bomb remedy each sayings actress"
 
 	var seed [32]byte
 	if err := siad.SeedFromPhrase(&seed, phrase); err != nil {
