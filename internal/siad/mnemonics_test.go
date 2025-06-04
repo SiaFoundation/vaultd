@@ -3,6 +3,7 @@ package siad
 import (
 	"bytes"
 	"encoding/hex"
+	"strings"
 	"testing"
 
 	"go.sia.tech/core/types"
@@ -35,5 +36,11 @@ func TestMnemonic(t *testing.T) {
 		if addr.String() != expected {
 			t.Fatalf("unexpected address: expected %q, got %q", expected, addr.String())
 		}
+
+	}
+
+	invalidPhrase := "touchy inroads aptitude perfect seventh tycoon zinger madness firm cause diode owls meant knife nuisance skirting umpire sapling reruns batch molten urchins jaded nodes"
+	if err = SeedFromPhrase(&seed, invalidPhrase); err == nil || !strings.Contains(err.Error(), "seed failed checksum verification") {
+		t.Fatal(err)
 	}
 }
