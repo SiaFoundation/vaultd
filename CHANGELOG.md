@@ -1,3 +1,9 @@
+## 0.3.4 (2025-06-04)
+
+### Fixes
+
+- Fixed [GET] /seeds/:id `lastIndex` field always returning 0.
+
 ## 0.3.3 (2025-06-03)
 
 ### Features
