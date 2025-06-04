@@ -63,6 +63,8 @@ func startServer(tb testing.TB, chain Chain, secret string) (client *Client) {
 }
 
 func TestAddSeed(t *testing.T) {
+	const count = 100
+
 	client := startServer(t, &chain{}, "foo bar baz")
 
 	phrase := wallet.NewSeedPhrase()
@@ -79,7 +81,7 @@ func TestAddSeed(t *testing.T) {
 		t.Fatalf("expected ID 1, got %d", meta.ID)
 	}
 
-	keys, err := client.GenerateKeys(context.Background(), meta.ID, 100)
+	keys, err := client.GenerateKeys(context.Background(), meta.ID, count)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,9 +99,17 @@ func TestAddSeed(t *testing.T) {
 			t.Errorf("key %d: expected spend policy %v", i, key.SpendPolicy)
 		}
 	}
+
+	meta, err = client.Seed(context.Background(), meta.ID)
+	if err != nil {
+		t.Fatal(err)
+	} else if meta.LastIndex != count-1 { // zero-indexed
+		t.Fatalf("expected last index %d, got %d", count-1, meta.LastIndex)
+	}
 }
 
 func TestAddSiadSeed(t *testing.T) {
+	const count = 100
 	client := startServer(t, &chain{}, "foo bar baz")
 
 	phrase := "mocked southern dehydrate unusual navy pegs aided ruined festival yearbook total building wife greater befit drunk judge thwart erosion hefty saucepan hijack request welders bomb remedy each sayings actress"
@@ -116,7 +126,7 @@ func TestAddSiadSeed(t *testing.T) {
 		t.Fatalf("expected ID 1, got %d", meta.ID)
 	}
 
-	keys, err := client.GenerateKeys(context.Background(), meta.ID, 100)
+	keys, err := client.GenerateKeys(context.Background(), meta.ID, count)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,6 +143,13 @@ func TestAddSiadSeed(t *testing.T) {
 		case key.SpendPolicy.Address() != expectedAddr:
 			t.Errorf("key %d: expected spend policy %v", i, key.SpendPolicy)
 		}
+	}
+
+	meta, err = client.Seed(context.Background(), meta.ID)
+	if err != nil {
+		t.Fatal(err)
+	} else if meta.LastIndex != count-1 {
+		t.Fatalf("expected last index %d, got %d", count-1, meta.LastIndex)
 	}
 }
 

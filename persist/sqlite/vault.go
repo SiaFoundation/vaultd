@@ -214,11 +214,11 @@ func seedMeta(tx *txn, seedID vault.SeedID) (vault.SeedMeta, error) {
 	} else if err != nil {
 		return vault.SeedMeta{}, fmt.Errorf("failed to get seed meta: %w", err)
 	}
-
-	if err := decorateSeedMeta(tx, []vault.SeedMeta{meta}); err != nil {
+	seeds := []vault.SeedMeta{meta}
+	if err := decorateSeedMeta(tx, seeds); err != nil {
 		return vault.SeedMeta{}, fmt.Errorf("failed to decorate seed meta: %w", err)
 	}
-	return meta, nil
+	return seeds[0], nil
 }
 
 func checkSeedExists(tx *txn, seedID vault.SeedID) error {

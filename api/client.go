@@ -78,6 +78,14 @@ func (c *Client) Unlock(ctx context.Context, secret string) error {
 	}, nil)
 }
 
+// Seed returns metadata about a seed. If the seed ID is not found,
+// [vault.ErrNotFound] is returned.
+func (c *Client) Seed(ctx context.Context, id vault.SeedID) (SeedResponse, error) {
+	var resp SeedResponse
+	err := c.c.GET(ctx, fmt.Sprintf("/seeds/%d", id), &resp)
+	return resp, err
+}
+
 // NewClient creates a new API client.
 func NewClient(address, password string) *Client {
 	return &Client{
