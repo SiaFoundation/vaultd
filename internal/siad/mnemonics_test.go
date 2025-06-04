@@ -10,17 +10,17 @@ import (
 )
 
 func TestMnemonic(t *testing.T) {
-	phrase := "touchy inroads aptitude perfect seventh tycoon zinger madness firm cause diode owls meant knife nuisance skirting umpire sapling reruns batch molten urchins jaded nodes"
+	phrase := "oval rockets slug umpire dizzy rekindle jester plus opened dauntless dummy origin cake oasis gimmick jogger dejected amnesty goes mystery cistern gawk algebra revamp rotate fitting coils vastness absorb"
 
-	expectedSeed, err := hex.DecodeString("9d233ac253210d671f96a2bfb187455b88204eabd602742b09b7525460595194")
+	expectedSeed, err := hex.DecodeString("f0c2fb993fec7b892b8a5fbfba95fb4400558a3c3cc4b536258217e13db0b872")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	expectedAddresses := map[uint64]string{
-		0:                    "64be0ec80f9b55675d526e6b3d5384e2950aa1d638995ea46920ba49fb137eca8088acf8dcc9",
-		4294967295:           "6191fece67324fde53e7f9e9ae50a485523e4af76988fb57306650fcfc11d480af785f3aebeb",
-		18446744073709551615: "55d7eed1d48d81aa99f26833c0e594dba17c93727db913eca68a4c3a9466b4f8453f1d97dc1d",
+		0:                    "d7b1cca352f3223ab5ec87204ee223895e49b539dea5506039aeda163c525fc486b2f2df01b8",
+		4294967295:           "f1f8693eba9c38ca9f58a919c10490cf049e9c55585bf91812bb9eafac296cf6551f4625f68b",
+		18446744073709551615: "6bb3915d60194a469340f91e07a89da26805b853620a23aacc6b3678c3a700939fef54ae17c3",
 	}
 
 	var seed [32]byte

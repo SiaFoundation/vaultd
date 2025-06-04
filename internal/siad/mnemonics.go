@@ -1,11 +1,13 @@
 package siad
 
 import (
+	"bytes"
 	"errors"
 	"math/big"
 	"strings"
 	"unicode/utf8"
 
+	"go.sia.tech/core/types"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -119,21 +121,6 @@ func phraseToInt(p string) (*big.Int, error) {
 	return result, nil
 }
 
-// intToPhrase converts a phrase into a big.Int, working in a fashion similar
-// to bytesToInt.
-func intToPhrase(bi *big.Int) string {
-	var words []string
-	base := big.NewInt(dictionarySize)
-	for bi.Cmp(base) >= 0 {
-		i := new(big.Int).Mod(bi, base).Int64()
-		words = append(words, dict[i])
-		bi.Sub(bi, base)
-		bi.Div(bi, base)
-	}
-	words = append(words, dict[bi.Int64()])
-	return strings.Join(words, " ")
-}
-
 // SeedFromPhrase derives a 32-byte seed from the supplied 28/29 word
 // siad recovery phrase.
 func SeedFromPhrase(seed *[32]byte, phrase string) error {
@@ -142,6 +129,13 @@ func SeedFromPhrase(seed *[32]byte, phrase string) error {
 		return err
 	}
 	bs := intToBytes(b)
+
+	// validate checksum
+	fullChecksum := types.HashBytes(bs[:32])
+	if len(bs) != 38 || !bytes.Equal(fullChecksum[:6], bs[32:]) {
+		return errors.New("seed failed checksum verification")
+	}
+
 	copy(seed[:], bs)
 	return nil
 }
