@@ -33,4 +33,6 @@ EXPOSE 9980/tcp
 ENV vaultd_DATA_DIR=/data
 ENV vaultd_CONFIG_FILE=/data/vaultd.yml
 
+RUN apt update && apt install -y ca-certificates
+
 ENTRYPOINT [ "vaultd", "--http.addr", ":9980" ]
