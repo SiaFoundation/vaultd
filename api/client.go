@@ -86,6 +86,12 @@ func (c *Client) Seed(ctx context.Context, id vault.SeedID) (SeedResponse, error
 	return resp, err
 }
 
+func (c *Client) Seeds(ctx context.Context, offset, limit int) ([]vault.SeedMeta, error) {
+	var resp SeedsResponse
+	err := c.c.GET(ctx, fmt.Sprintf("/seeds?offset=%d&limit=%d", offset, limit), &resp)
+	return resp.Seeds, err
+}
+
 // NewClient creates a new API client.
 func NewClient(address, password string) *Client {
 	return &Client{
