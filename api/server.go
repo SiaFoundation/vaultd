@@ -66,7 +66,7 @@ func (a *api) handleGETSeeds(jc jape.Context) {
 		return
 	}
 
-	seeds, err := a.vault.Seeds(offset, limit)
+	seeds, err := a.vault.Seeds(limit, offset)
 	if err != nil {
 		jc.Error(err, http.StatusInternalServerError)
 		return

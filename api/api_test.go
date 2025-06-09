@@ -286,6 +286,68 @@ func TestSignV2(t *testing.T) {
 	}
 }
 
+func TestSignV2UnlockConditions(t *testing.T) {
+	client := startServer(t, &chain{}, "foo bar baz")
+
+	phrase := wallet.NewSeedPhrase()
+
+	var seed [32]byte
+	if err := wallet.SeedFromPhrase(&seed, phrase); err != nil {
+		t.Fatal(err)
+	}
+
+	pk := wallet.KeyFromSeed(&seed, 0).PublicKey()
+	sp := types.SpendPolicy{
+		Type: types.PolicyTypeUnlockConditions(types.StandardUnlockConditions(pk)),
+	}
+
+	meta, err := client.AddSeed(context.Background(), phrase)
+	if err != nil {
+		t.Fatal(err)
+	} else if meta.ID != 1 {
+		t.Fatalf("expected ID 1, got %d", meta.ID)
+	}
+
+	_, err = client.GenerateKeys(context.Background(), meta.ID, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	txn := types.V2Transaction{
+		SiacoinInputs: []types.V2SiacoinInput{
+			{
+				Parent: types.SiacoinElement{
+					ID: frand.Entropy256(),
+				},
+				SatisfiedPolicy: types.SatisfiedPolicy{
+					Policy: sp,
+				},
+			},
+		},
+	}
+
+	cs := consensus.State{
+		Network: &consensus.Network{},
+		Index: types.ChainIndex{
+			Height: 5,
+			ID:     frand.Entropy256(),
+		},
+	}
+
+	sigHash := cs.InputSigHash(txn)
+
+	txn, signed, err := client.SignV2(context.Background(), txn, SignV2WithState(cs))
+	if err != nil {
+		t.Fatal(err)
+	} else if !signed {
+		t.Fatal("expected transaction to be signed")
+	}
+	signature := txn.SiacoinInputs[0].SatisfiedPolicy.Signatures[0]
+	if !wallet.KeyFromSeed(&seed, 0).PublicKey().VerifyHash(sigHash, signature) {
+		t.Fatal("signature verification failed")
+	}
+}
+
 func TestSignLoadState(t *testing.T) {
 	cs := consensus.State{
 		Network: &consensus.Network{
