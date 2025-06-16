@@ -1,4 +1,4 @@
-module go.sia.tech/vaultd // v0.3.5
+module go.sia.tech/vaultd // v0.3.6
 
 go 1.24.1
 

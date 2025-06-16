@@ -1,3 +1,13 @@
+## 0.3.6 (2025-06-16)
+
+### Features
+
+- Add missing API client methods.
+
+### Fixes
+
+- Fixed seeds always returning null.
+
 ## 0.3.5 (2025-06-09)
 
 ### Fixes
