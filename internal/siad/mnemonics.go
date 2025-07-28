@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -166,6 +167,8 @@ func SeedFromPhrase(seed *[32]byte, phrase string) error {
 // SeedToPhrase converts a 32-byte seed into a checksummed 28/29 word siad recovery phrase.
 func SeedToPhrase(seed *[32]byte) string {
 	checksum := types.HashBytes(seed[:])
-	checksumSeed := append(seed[:], checksum[:checksumBytes]...)
+	checksumSeed := slices.Clone(seed[:])
+	checksumSeed = append(checksumSeed, checksum[:checksumBytes]...)
+	defer clear(checksumSeed)
 	return intToPhrase(bytesToInt(checksumSeed))
 }
