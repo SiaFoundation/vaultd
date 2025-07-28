@@ -102,7 +102,7 @@ func (m *Manager) Close() error {
 }
 
 func makeGETRequest(ctx context.Context, url string, obj any) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
