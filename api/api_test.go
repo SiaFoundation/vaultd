@@ -198,11 +198,13 @@ func TestSignV1(t *testing.T) {
 	cs := consensus.State{
 		Network: &consensus.Network{
 			HardforkV2: struct {
-				AllowHeight   uint64 `json:"allowHeight"`
-				RequireHeight uint64 `json:"requireHeight"`
+				AllowHeight    uint64 `json:"allowHeight"`
+				RequireHeight  uint64 `json:"requireHeight"`
+				FinalCutHeight uint64 `json:"finalCutHeight"`
 			}{
-				AllowHeight:   10,
-				RequireHeight: 20,
+				AllowHeight:    10,
+				RequireHeight:  20,
+				FinalCutHeight: 30,
 			},
 		},
 		Index: types.ChainIndex{
@@ -359,11 +361,13 @@ func TestSignLoadState(t *testing.T) {
 				Height: 8,
 			},
 			HardforkV2: struct {
-				AllowHeight   uint64 `json:"allowHeight"`
-				RequireHeight uint64 `json:"requireHeight"`
+				AllowHeight    uint64 `json:"allowHeight"`
+				RequireHeight  uint64 `json:"requireHeight"`
+				FinalCutHeight uint64 `json:"finalCutHeight"`
 			}{
-				AllowHeight:   10,
-				RequireHeight: 20,
+				AllowHeight:    10,
+				RequireHeight:  20,
+				FinalCutHeight: 30,
 			},
 		},
 		Index: types.ChainIndex{
@@ -457,11 +461,13 @@ func TestSignV2LoadState(t *testing.T) {
 				Height: 8,
 			},
 			HardforkV2: struct {
-				AllowHeight   uint64 `json:"allowHeight"`
-				RequireHeight uint64 `json:"requireHeight"`
+				AllowHeight    uint64 `json:"allowHeight"`
+				RequireHeight  uint64 `json:"requireHeight"`
+				FinalCutHeight uint64 `json:"finalCutHeight"`
 			}{
-				AllowHeight:   10,
-				RequireHeight: 20,
+				AllowHeight:    10,
+				RequireHeight:  20,
+				FinalCutHeight: 30,
 			},
 		},
 		Index: types.ChainIndex{
