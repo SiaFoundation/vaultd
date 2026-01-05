@@ -3,9 +3,9 @@ module go.sia.tech/vaultd // v0.3.6
 go 1.24.1
 
 require (
-	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/mattn/go-sqlite3 v1.14.33
 	go.sia.tech/core v0.19.0
-	go.sia.tech/coreutils v0.19.0
+	go.sia.tech/coreutils v0.20.0
 	go.sia.tech/jape v0.14.1
 	go.uber.org/zap v1.27.1
 	golang.org/x/crypto v0.46.0
