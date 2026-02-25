@@ -338,7 +338,7 @@ func (a *api) handlePOSTSignV2(jc jape.Context) {
 			if errors.Is(err, vault.ErrNotFound) {
 				return nil
 			} else if err != nil {
-				return fmt.Errorf("failed to sign policy %q: %w", policy, err)
+				return fmt.Errorf("failed to sign policy %v: %w", policy, err)
 			}
 			*signatures = append(*signatures, sig)
 		case types.PolicyTypeUnlockConditions:
@@ -355,13 +355,13 @@ func (a *api) handlePOSTSignV2(jc jape.Context) {
 				if errors.Is(err, vault.ErrNotFound) {
 					continue
 				} else if err != nil {
-					return fmt.Errorf("failed to sign policy %q: %w", policy, err)
+					return fmt.Errorf("failed to sign policy %v: %w", policy, err)
 				}
 				*signatures = append(*signatures, sig)
 				signed++
 			}
 			if signed < policy.SignaturesRequired {
-				return fmt.Errorf("policy %q required signatures not met %d != %d", policy, signed, policy.SignaturesRequired)
+				return fmt.Errorf("policy %v required signatures not met %d != %d", policy, signed, policy.SignaturesRequired)
 			}
 		}
 		return nil
