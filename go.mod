@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/mattn/go-sqlite3 v1.14.34
 	go.sia.tech/core v0.19.0
-	go.sia.tech/coreutils v0.21.0
+	go.sia.tech/coreutils v0.21.1
 	go.sia.tech/jape v0.14.1
 	go.uber.org/zap v1.27.1
 	golang.org/x/crypto v0.48.0
