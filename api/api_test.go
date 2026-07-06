@@ -198,13 +198,15 @@ func TestSignV1(t *testing.T) {
 	cs := consensus.State{
 		Network: &consensus.Network{
 			HardforkV2: struct {
-				AllowHeight    uint64 `json:"allowHeight"`
-				RequireHeight  uint64 `json:"requireHeight"`
-				FinalCutHeight uint64 `json:"finalCutHeight"`
+				AllowHeight           uint64 `json:"allowHeight"`
+				RequireHeight         uint64 `json:"requireHeight"`
+				FinalCutHeight        uint64 `json:"finalCutHeight"`
+				EphemeralOutputHeight uint64 `json:"ephemeralOutputHeight"`
 			}{
-				AllowHeight:    10,
-				RequireHeight:  20,
-				FinalCutHeight: 30,
+				AllowHeight:           10,
+				RequireHeight:         20,
+				FinalCutHeight:        30,
+				EphemeralOutputHeight: 40,
 			},
 		},
 		Index: types.ChainIndex{
@@ -361,13 +363,15 @@ func TestSignLoadState(t *testing.T) {
 				Height: 8,
 			},
 			HardforkV2: struct {
-				AllowHeight    uint64 `json:"allowHeight"`
-				RequireHeight  uint64 `json:"requireHeight"`
-				FinalCutHeight uint64 `json:"finalCutHeight"`
+				AllowHeight           uint64 `json:"allowHeight"`
+				RequireHeight         uint64 `json:"requireHeight"`
+				FinalCutHeight        uint64 `json:"finalCutHeight"`
+				EphemeralOutputHeight uint64 `json:"ephemeralOutputHeight"`
 			}{
-				AllowHeight:    10,
-				RequireHeight:  20,
-				FinalCutHeight: 30,
+				AllowHeight:           10,
+				RequireHeight:         20,
+				FinalCutHeight:        30,
+				EphemeralOutputHeight: 40,
 			},
 		},
 		Index: types.ChainIndex{
@@ -461,13 +465,15 @@ func TestSignV2LoadState(t *testing.T) {
 				Height: 8,
 			},
 			HardforkV2: struct {
-				AllowHeight    uint64 `json:"allowHeight"`
-				RequireHeight  uint64 `json:"requireHeight"`
-				FinalCutHeight uint64 `json:"finalCutHeight"`
+				AllowHeight           uint64 `json:"allowHeight"`
+				RequireHeight         uint64 `json:"requireHeight"`
+				FinalCutHeight        uint64 `json:"finalCutHeight"`
+				EphemeralOutputHeight uint64 `json:"ephemeralOutputHeight"`
 			}{
-				AllowHeight:    10,
-				RequireHeight:  20,
-				FinalCutHeight: 30,
+				AllowHeight:           10,
+				RequireHeight:         20,
+				FinalCutHeight:        30,
+				EphemeralOutputHeight: 40,
 			},
 		},
 		Index: types.ChainIndex{
