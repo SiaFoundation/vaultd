@@ -2,8 +2,7 @@ openapi: 3.1.0
 info:
   title: vaultd API
   description: API specification for the vaultd service.
-  version: 1.0.0
-
+  version: 0.3.9
 paths:
   /state:
     get:
@@ -64,7 +63,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
   /seeds/{id}:
     get:
       summary: Get metadata for a specific seed.
@@ -97,7 +95,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
   /seeds/{id}/keys:
     get:
       summary: Get public keys derived from a seed.
@@ -242,7 +239,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
   /blind/sign:
     post:
       summary: Blind sign a 32-byte hash.
@@ -274,7 +270,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
 components:
   schemas:
     AddSeedRequest:
@@ -285,7 +280,6 @@ components:
           description: The recovery phrase for the seed. It must be either a 12-word BIP39 phrase or a 28/29 word siad phrase.
       required:
         - phrase
-
     SeedResponse:
       type: object
       properties:
@@ -299,7 +293,6 @@ components:
           type: string
           format: date-time
           description: The timestamp when the seed was created
-
     SeedKeysResponse:
       type: object
       properties:
@@ -307,7 +300,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SeedKey'
-
     SeedKey:
       type: object
       properties:
@@ -319,7 +311,6 @@ components:
           description: The address derived from the public key.
         spendPolicy:
           $ref: '#/components/schemas/SpendPolicy'
-
     SignRequest:
       type: object
       properties:
@@ -331,7 +322,6 @@ components:
           $ref: '#/components/schemas/Transaction'
       required:
         - transaction
-
     SignResponse:
       type: object
       properties:
@@ -340,7 +330,6 @@ components:
         fullySigned:
           type: boolean
           description: True if the transaction is fully signed.
-
     SignV2Request:
       type: object
       properties:
@@ -354,7 +343,6 @@ components:
           $ref: '#/components/schemas/V2Transaction'
       required:
         - transaction
-
     SignV2Response:
       type: object
       properties:
@@ -363,7 +351,6 @@ components:
         fullySigned:
           type: boolean
           description: True if the transaction is fully signed.
-    
     BlindSignRequest:
       type: object
       properties:
@@ -374,13 +361,11 @@ components:
       required:
         - publicKey
         - sigHash
-
     BlindSignResponse:
       type: object
       properties:
         signature:
           $ref: '#/components/schemas/Signature'
-
     ConsensusState:
       type: object
       properties:
@@ -409,7 +394,6 @@ components:
           $ref: '#/components/schemas/Address'
         foundationManagementAddress:
           $ref: '#/components/schemas/Address'
-
     Transaction:
       type: object
       properties:
@@ -452,7 +436,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TransactionSignature'
-
     SiacoinInput:
       type: object
       properties:
@@ -461,7 +444,6 @@ components:
           description: The ID of the parent siacoin output
         unlockConditions:
           $ref: '#/components/schemas/UnlockConditions'
-
     SiacoinOutput:
       type: object
       properties:
@@ -469,7 +451,6 @@ components:
           $ref: '#/components/schemas/Currency'
         address:
           $ref: '#/components/schemas/Address'
-          
     SiafundInput:
       type: object
       properties:
@@ -480,7 +461,6 @@ components:
           $ref: '#/components/schemas/UnlockConditions'
         claimAddress:
           $ref: '#/components/schemas/Address'
-
     SiafundOutput:
       type: object
       properties:
@@ -488,7 +468,6 @@ components:
           $ref: '#/components/schemas/Currency'
         address:
           $ref: '#/components/schemas/Address'
-
     FileContract:
       type: object
       properties:
@@ -514,7 +493,6 @@ components:
           $ref: '#/components/schemas/Address'
         revisionNumber:
           type: integer
-
     FileContractRevision:
       type: object
       properties:
@@ -544,7 +522,6 @@ components:
           $ref: '#/components/schemas/Address'
         revisionNumber:
           type: integer
-    
     StorageProof:
       type: object
       properties:
@@ -556,7 +533,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Hash256'
-
     TransactionSignature:
       type: object
       properties:
@@ -568,13 +544,11 @@ components:
           type: integer
         coveredFields:
           $ref: '#/components/schemas/CoveredFields'
-
     CoveredFields:
       type: object
       properties:
         wholeTransaction:
           type: boolean
-
     UnlockConditions:
       type: object
       properties:
@@ -586,7 +560,6 @@ components:
             $ref: '#/components/schemas/UnlockKey'
         signaturesRequired:
           type: integer
-
     UnlockKey:
       type: object
       properties:
@@ -594,7 +567,6 @@ components:
           type: string
         key:
           type: string
-
     V2Transaction:
       type: object
       properties:
@@ -644,7 +616,6 @@ components:
           description: Arbitrary data included in the transaction
         minerFee:
           $ref: '#/components/schemas/Currency'
-
     V2SiacoinInput:
       type: object
       properties:
@@ -652,7 +623,6 @@ components:
           $ref: '#/components/schemas/SiacoinElement'
         satisfiedPolicy:
           $ref: '#/components/schemas/SatisfiedPolicy'
-
     V2SiafundInput:
       type: object
       properties:
@@ -662,7 +632,6 @@ components:
           $ref: '#/components/schemas/Address'
         satisfiedPolicy:
           $ref: '#/components/schemas/SatisfiedPolicy'
-
     V2FileContract:
       type: object
       properties:
@@ -702,7 +671,6 @@ components:
         hostSignature:
           type: string
           description: The host's signature
-    
     V2FileContractElement:
       type: object
       properties:
@@ -713,7 +681,6 @@ components:
           $ref: "#/components/schemas/StateElement"
         v2FileContract:
           $ref: "#/components/schemas/V2FileContract"
-
     V2FileContractRevision:
       type: object
       properties:
@@ -721,7 +688,6 @@ components:
           $ref: '#/components/schemas/V2FileContractElement'
         revision:
           $ref: '#/components/schemas/V2FileContract'
-
     V2FileContractResolution:
       type: object
       properties:
@@ -729,7 +695,6 @@ components:
           $ref: '#/components/schemas/V2FileContractElement'
         resolution:
           $ref: '#/components/schemas/V2FileContractResolutionType'
-
     V2FileContractResolutionType:
       type: string
       enum:
@@ -737,7 +702,6 @@ components:
         - storageProof
         - expiration
       description: The type of file contract resolution
-
     Attestation:
       type: object
       properties:
@@ -752,7 +716,6 @@ components:
           description: The value of the attestation
         signature:
           $ref: '#/components/schemas/Signature'
-
     StateElement:
       type: object
       properties:
@@ -765,7 +728,6 @@ components:
             type: string
             example: '5114029f691326998fbfea4ca84f98b3d9c7de74ba2d5f33410cade9069f7b20'
           description: A merkle proof of existence
-
     SiacoinElement:
       type: object
       properties:
@@ -779,7 +741,6 @@ components:
         maturityHeight:
           type: integer
           description: The height at which the output matures
-
     SiafundElement:
       type: object
       properties:
@@ -792,11 +753,10 @@ components:
           $ref: '#/components/schemas/SiafundOutput'
         claimStart:
           $ref: '#/components/schemas/Currency'
-
     SatisfiedPolicy:
       type: object
       properties:
-        policy: 
+        policy:
           $ref: '#/components/schemas/SpendPolicy'
         signatures:
           type: array
@@ -806,44 +766,36 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Hash256'
-
     Address:
       type: string
       description: A blockchain address
       example: '15b89c3f817ef332c6c72992ac67e5014572087822efe5c272137c3bbb32f39a376da65eb5c0'
-      
     PublicKey:
       type: string
       example: 'ed25519:5114029f691326998fbfea4ca84f98b3d9c7de74ba2d5f33410cade9069f7b20'
       description: An ed25519 public key
-
     SpendPolicyAbove:
       type: integer
       example: 250000
       description: The height above which the policy is satisfied
-      
     SpendPolicyAfter:
       type: integer
       example: 1743408089
       description: The unix timestamp after which the policy is satisfied
-    
     SpendPolicyPublicKey:
       $ref: '#/components/schemas/PublicKey'
-    
     SpendPolicyHash:
       type: string
       example: '5114029f691326998fbfea4ca84f98b3d9c7de74ba2d5f33410cade9069f7b20'
       description: The sha256 hash of the preimage that can satisfy the policy
-
     SpendPolicyThreshold:
       type: object
       properties:
-        n: 
+        n:
           type: integer
           description: The number of policies that must be satisfied
         of:
           $ref: '#/components/schemas/SpendPolicy'
-          
     SpendPolicy:
       type: object
       properties:
@@ -857,24 +809,20 @@ components:
             - $ref: '#/components/schemas/SpendPolicyPublicKey'
             - $ref: '#/components/schemas/SpendPolicyAfter'
             - $ref: '#/components/schemas/SpendPolicyAbove'
-            
     Hash256:
       type: string
       example: 'aebe03723ed2b2a55d239c92ad717a8d397d6c2538b7604694e4ec04d16174d7'
       description: A 256 bit hash
-      
     Signature:
       type: string
       example: ed92a2c7b833af87a5d796e095375a97c7b361d7019ded2e4b080d63fc5a2ba215cbc4a46ec81ebdcb21e39a23dfc78d2cd8466ebae7f7c5a265a4da6a7d1298
       description: An ed25519 signature
-      
     Currency:
       type: string
       pattern: "^\\d+$"
       maxLength: 39 # fits 2^128 - 1
       description: An unsigned amount of Hastings, the smallest unit of currency in Sia. 1 Siacoin (SC) equals 10^24 Hastings (H).
       example: '1000000000000000000000000'
-
     ChainIndex:
       type: object
       properties:
@@ -882,7 +830,6 @@ components:
           type: integer
         id:
           $ref: '#/components/schemas/Hash256'
-
     Network:
       type: object
       properties:
@@ -891,7 +838,6 @@ components:
         blockInterval:
           type: string
           description: Duration of the block interval.
-
     ErrorResponse:
       type: string
       description: A description of the error
