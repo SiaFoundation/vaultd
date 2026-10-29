@@ -1,3 +1,9 @@
+## 0.3.10 (2026-10-29)
+
+### Fixes
+
+- Update core to v0.21.8 and coreutils to v0.25.1.
+
 ## 0.3.9 (2026-07-13)
 
 ### Fixes
